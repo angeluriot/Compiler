@@ -1,0 +1,269 @@
+class Point(var x, y: Integer, var name: String) is {
+  var static next : Integer;
+  def static incr() : Integer is
+     { Point.next := Point.next + 1; result := Point.next; }
+  def static howMany() : Integer := Point.next
+  def static init () is { Point.next := 0; }
+
+  /* attributs supplementaires à initialiser dans le constructeur */
+  var hasClone : Integer;
+  var index : Integer;  
+  /* la valeur du champ ci-dessous est indefinie si hasClone vaut 0.
+   * Le probleme est qu'on n'a pas l'equivalent de NULL (du bon type)
+   */
+  var clone : Point;
+
+
+  /* L'en-tete du constructeur doit etre identique a celui de la classe.
+   * Les parametres précédés de var correspondent implictement à des attributs
+   * de meme nom qui seront intialises automatiquement à la valeur du
+   * parametre, comme si on avait la ligne suivante en tete du constructeur:
+   *  this.x := x; this.y := y; this.name := name;
+   */
+
+  def Point(var x, y: Integer, var name: String) is
+     { this.index := Point.incr(); this.hasClone := 0; }
+
+  def getx() : Integer := this.x      /* pas de this implicite */
+
+  def gety() : Integer := this.y
+
+  def setName(s: String) is { this.name := s; }
+
+  def isCloned() : Integer := this.hasClone <> 0
+
+  def move(dx: Integer, dy: Integer, verbose: Integer) : Point is {
+      this.x := this.x + dx; this.y := this.y + dy;
+      if verbose then { this.print(verbose); } else {}
+      /* pseudo variable 'result' dans laquelle, par convention, on laisse
+       * la valeur de retour d'une fonction qui a un type de retour.
+       * On aurait pu ecrire aussi
+       * return this;
+       */
+      result := this;
+  }
+
+  def print(verbose : Integer) is {
+      if verbose then "Inside Point::print".println(); else { }
+      /* Exemples avec l'operateur & de concatenation de chaines */
+      this.name.print();
+      ( "= (" & this.x.toString() & ", " & this.y.toString() & ")" ).println();
+  }
+
+  /* par defaut, on ajoute un ' au nom de l'objet. Modifiable avec setName */
+  def clone() : Point is
+  { this.hasClone = 1;
+   /* On memorise le dernier clone construit à partir de cet objet
+    * si on voulait on pourrait le chainer a la fin de la liste des clones
+    */
+    this.clone := new Point(this.x, this.y, this.name & "'");
+    result := this.clone;
+  }
+
+  /* imprime le clone de cet objet, s'il existe, ainsi que recursivement
+   * les clones de ce dernier
+   */
+  def allClones () is {
+    if this.hasClone <> 0 then { this.clone.print(1); this.clone.allClones(); }
+    else { }
+  }
+
+  def egal(p: Point) : Integer is {
+   /* ils sont egaux s'ils ont memes coordonnees */
+       b1, b2 : Integer;
+       is
+       b1 := p.x - this.x; b2 := p.y - this.y;
+       if b1 then return 0; else return b2 = 0;
+  }
+
+  def egal2(p: Point) : Integer is {  /* autre version */
+    b1, b2: Integer;
+    is
+    b1 := p.x - this.x;
+    b2 := p.y - this.y;
+    result := 0;
+    if b1 then { } else { result := b2 = 0; }
+  }
+} /* Fin de la classe Point */
+
+class Couleur(var coul: Integer) is {
+   /* 3 couleurs : couleur = 0, 1 ou 2
+    * Le corps du constructeur garantit qu'on a bien que trois couleurs.
+    */
+
+   def Couleur (var coul: Integer) is {
+      if this.coul < 0 then this.coul := 0;
+      else if this.coul > 2 then this.coul := 0; else {}
+   }
+
+   def name(verbose: Integer) : String is {
+      aux: String;
+      is
+      if verbose then "Inside Couleur::couleur".println(); else {}
+      if this.coul = 0 then result:= "Blanc";
+      else { dummy : String;
+             is
+	     dummy := "Noir"; aux := "Gris";
+             if this.coul = 1 then aux := dummy; else { }
+	     result := aux;
+           }
+   }
+
+   def estGris() : Integer is {
+     "Inside Couleur::estGris".println();
+     result := this.coul = 2;
+   }
+}
+
+class CouleurFactory() is {
+   var static theBlanc, theNoir, theGris : Couleur;
+
+   def CouleurFactory() is {}
+
+   def static init() is {
+      CouleurFactory.theBlanc := new Couleur(0);
+      CouleurFactory.theNoir  := new Couleur(1);
+      CouleurFactory.theGris  := new Couleur(2);
+   }
+   def blanc() : Couleur := CouleurFactory.theBlanc
+   def noir()  : Couleur := CouleurFactory.theNoir
+   def gris()  : Couleur := CouleurFactory.theGris
+}
+
+/* ci-dessous on ne met pas var devant x et y sinon ca definirait deux
+ * nouveaux champs qui masqueraient ceux herites de Point
+ */
+class PointColore(x, y:Integer, var coul: Couleur) extends Point is {
+
+   def couleur() : Couleur := this.coul
+
+   def colore() : Integer := this.coul.estGris() <> 0
+
+   def PointColore (x, y:Integer, var coul: Couleur)
+     : Point(x, y, "P-" & Point.howMany().toString() ) is { /* empty */ }
+
+ /* pas PointColore: pas de covariance ! On ne peut pas reutiliser le
+  * clone de Point car ca nous donnerait une instance de Point.
+  * On n'a pas le mecanisme predefini de Java qui permet de remonter jusqu'a
+  * la racine de la hierarchie tout en allouant un objet de la bonne classe.
+  */
+   def override clone() : Point /* pas PointColore. Pas de covariance ! */
+           /* ci-dessous x et y sont les champs herites de Point */
+       := new PointColore(this.x, this.y, this.coul)
+
+   def estGris() : Integer := this.coul.estGris()
+
+   def override print(verbose : Integer) is {
+      if verbose then "Inside PointColore::print".println(); else { }
+      super.print(verbose);  /* usage classique de super */
+      this.couleur().name(1).println();
+   }
+}
+
+class PointNoir(xc, yc:Integer) extends PointColore is {
+   def override estGris() : Integer := 0
+   def override colore() : Integer := 1
+   def override couleur() : Couleur := CouleurFactory.noir()
+   def PointNoir(xc, yc:Integer)
+      : PointColore(xc, yc, CouleurFactory.noir()) is { /* empty */ }
+}
+
+
+class DefaultPoint() extends PointColore is {
+   def override estGris() : Integer := 0
+   def override couleur() : Couleur := CouleurFactory.blanc()
+   def DefaultPoint()
+      : PointColore(0, 0, CouleurFactory.blanc()) is { /* empty */ }
+}
+
+class Test () is {
+   def static test(p: Point, p2: PointColore, p3: PointNoir) is {
+      c, c2, c3: String;
+      true: Integer;
+      is
+      true := 1;
+      p.print(true);
+      p2.print(true);
+      "Appel 1: ".println();
+      if p2.colore() <> 0 then c := "colore";  else c := "gris";
+      "Appel 2: ".println();
+      if p3.colore() <> 0 then c2 := "colore"; else c2 := "gris";
+      "Appel 3: ".println();
+      if p3.colore() <> 0 then c3 := "colore"; else c3 := "gris";
+      "Resultats de test: ".println();
+      c.print(); " ".print();
+      c2.print(); " ".print();
+      c3.print();
+      "".println(); /* imprime une ligne vide */
+   }
+
+   def static test2(p: PointColore) is { p.couleur().name(1).print(); }
+
+   def Test() is {}
+}
+
+{ /* Bloc qui correspond au programme principal */
+  p1, p2, p3, clone1, clone2: Point;
+  true, false, fv: Integer;
+  o: PointColore;
+  pn: PointNoir;
+  dp: DefaultPoint;
+  is
+  "Debut du programme".println();
+  Point.init();
+  CouleurFactory.init();
+  true := 1;
+  false := 0;
+  p1 := new Point(1, 5, "p1");
+  p2 := new Point(2, 3, "p2");
+  p3 := new Point(0, 0, "p3");
+  fv := 12;
+  o := new PointColore(0, 0, CouleurFactory.blanc());
+  pn := new PointNoir(+1, -1);
+  dp := new DefaultPoint();
+  p1.print(0);
+  p2.print(0); 
+  p2.move(p1.getx(), p1.gety(), 0);
+  p2.print(0);
+  o.print(0);
+  o.setName("origine");
+  o.print(true);
+  p2.move(p1.getx()-2*5-3, p1.gety(), 0);
+  p2.print(true);
+
+  "On va essayer le clonage:".println();
+  clone1 := p1.clone(); clone1.print(false);
+  "p1 isCloned: ".print();
+  if p1.isCloned() then "OK".println(); else "KO".println();
+  clone2 := clone1.clone(); clone2.move(54, 36, 0).print(false);
+
+  "Impression de tous les clones de p1:".println();
+   p1.allClones();
+  "Fin de l'impression de tous les clones".println();
+  
+  /* Ne doit pas compiler car clone() renvoie statiquement un Point alors
+   * que o est declare comme PointColore
+   * o := o.clone();
+   */
+
+  "Valeur du compteur de nombre de points: ".println();
+  Point.howMany().toString().println();
+
+  p1 := p1.clone().move(+2, -3, 0);
+  p1.print(true);
+  o.clone().print(true);
+  "test(Point, PointColore, PointNoir)".println();
+  Test.test(p1, o, pn);
+  "test(PointNoir, PointNoir, PointNoir)".println();
+  Test.test(pn, pn, pn);
+  p1 := pn; /* affectation entre pointeurs ! */
+  Test.test2(o);
+  Test.test2(pn);
+  o := pn;  /* Idem : on doit avoir de la liaison dynamique ci-dessous */
+
+  "test(PointNoir, PointNoir, PointNoir)".println();
+  Test.test(p1, o, pn);
+  Test.test2(o);
+  Test.test2(pn);
+  "\nDone".println();
+}
