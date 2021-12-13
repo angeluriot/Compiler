@@ -1,0 +1,43 @@
+-- Comme addint, sauf qu'il n'y a pas de point d'arret !
+
+-- stocker 2 dans obj#1
+	ALLOC 1		-- entier 2
+	DUPN 1
+	PUSHI 2
+	STORE 0
+-- stocker 3 dans obj#2
+	ALLOC 1		-- entier 3
+	DUPN 1
+	PUSHI 3
+	STORE 0
+-- start
+	JUMP start
+-- la fonction qui prend deux entiers en parametre et retourne leur somme
+-- La fonction a un "point d'arret" qui arretera l'execution du code juste
+-- avant
+addint: NOP
+	PUSHL -2	-- 1er argument
+	LOAD 0		-- sa valeur
+	PUSHL -1	-- 2nd argument
+	LOAD 0		-- sa valeur
+	ADD
+	PUSHL -3	-- resultat
+	SWAP		
+	STORE 0		-- stocker le resultat
+	RETURN 
+-- debut
+start:	START
+	ALLOC 1		-- resultat addint
+	PUSHG 0		-- empiler arg1
+	PUSHG 1		-- empiler arg2
+	PUSHA addint	-- adresse fonction
+	CALL 		-- appel
+	POPN 2		--depiler les arguments
+-- afficher le resultat
+	PUSHS "resultat = "
+	WRITES
+	LOAD 0
+	WRITEI
+	PUSHS "\n"
+	WRITES
+	STOP

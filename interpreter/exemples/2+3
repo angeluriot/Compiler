@@ -1,0 +1,28 @@
+-- allouer deux objets globaux avec un unique champ de type entier
+-- et faire la somme des valeurs des champs des deux objets et
+-- l'afficher
+	ALLOC 1		-- entier 2
+	ALLOC 1		-- entier 3
+-- start
+	START
+-- stocker 2 dans obj#1
+	PUSHG 0
+	PUSHI 2
+	STORE 0
+-- stocker 3 dans obj#2
+	PUSHG 1
+	PUSHI 3
+	STORE 0
+-- additionner les deux valeurs
+	PUSHG 0
+	LOAD 0
+	PUSHG 1
+	LOAD 0
+	ADD
+-- afficher le resultat
+	PUSHS "resultat = "
+	WRITES
+	WRITEI
+	PUSHS "\n"
+	WRITES
+	STOP

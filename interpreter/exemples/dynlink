@@ -1,0 +1,88 @@
+	JUMP init	-- initialiser
+-- corps des methodes
+m1:	PUSHS "m1\n"
+	WRITES
+	RETURN
+m2:	PUSHS "m2\n"
+	WRITES
+	RETURN
+m3:	PUSHS "m3\n"
+	WRITES
+	RETURN
+-- invoquer 1ere methode du receveur
+call1:	PUSHL -1	-- le recepteur
+	DUPN 1
+	LOAD 0 -- charger TV
+	LOAD 0 -- charger @methode1
+	CALL
+	RETURN
+-- invoquer 2eme methode du receveur
+call2:	PUSHL -1	-- le recepteur
+	DUPN 1
+	LOAD 0 -- charger TV
+	LOAD 1 -- charger @methode2
+	CALL
+	RETURN
+-- main program
+main:	START
+	-- allouer un objet de classe A
+	ALLOC 1 -- a
+	DUPN 1
+	PUSHG 0
+	STORE 0
+	-- allouer un objet de classe B
+	ALLOC 1 -- b
+	DUPN 1
+	PUSHG 1
+	STORE 0
+	-- invoquer la premiere methode sur a: m1
+	PUSHL 0
+	PUSHA call1
+	CALL
+	POPN 1
+	-- invoquer la seconde methode sur a: m2
+	PUSHL 0
+	PUSHA call2
+	CALL
+	POPN 1
+	-- invoquer la premiere methode sur b: m3
+	PUSHL 1
+	PUSHA call1
+	CALL
+	POPN 1
+	-- invoquer la seconde methode sur b: m2
+	PUSHL 1
+	PUSHA call2
+	CALL
+	POPN 1
+	-- a := b
+	PUSHL 1
+	STOREL 0
+	-- invoquer la premiere methode sur a: m3
+	PUSHL 0
+	PUSHA call1
+	CALL
+	POPN 1
+	-- invoquer la seconde methode sur a: m2
+	PUSHL 0
+	PUSHA call2
+	CALL
+	POPN 1
+*	STOP
+-- initialiser les tables virtuelles
+init:	ALLOC 2 -- classe A
+	DUPN 1
+	PUSHA m1
+	STORE 0
+	DUPN 1
+	PUSHA m2
+	STORE 1
+	ALLOC 2 -- classe B
+	DUPN 1
+	PUSHA m3 -- redefinit m1
+	STORE 0
+	DUPN 1
+	PUSHA m2 -- pas de redefinition
+	STORE 1
+-- start main
+	JUMP main

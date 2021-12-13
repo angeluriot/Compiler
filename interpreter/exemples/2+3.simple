@@ -1,0 +1,11 @@
+	START
+	PUSHI 2
+	PUSHI 3
+	ADD
+-- afficher le resultat
+	PUSHS "resultat = "
+	WRITES
+	WRITEI
+	PUSHS "\n"
+	WRITES
+	STOP

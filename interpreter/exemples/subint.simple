@@ -1,0 +1,43 @@
+-- Exemple de code avec appels de fonctions imbriques.
+-- subint(x, y) = x - y
+-- begin put("resultat =", subint(subint(2, 3), subint(5, 7), "\n") end
+
+-- debut:
+start:	START
+	PUSHS "resultat = "
+	PUSHN 1		-- emplacement du resultat final
+-- Code correspondant a subint(2, 3)
+	PUSHN 1	        -- emplacement du resultat de subint(2, 3)
+	PUSHI 2		-- empiler arg1
+	PUSHI 3		-- empiler arg2
+	PUSHA subint	-- adresse fonction
+	CALL 		-- appel
+	POPN 2		--depiler les parametres apres usage.
+-- Code correspondant a subint(5, 7)
+	PUSHN 1	        -- emplacement du resultat de subint(5, 7)
+	PUSHI 5		-- empiler arg1
+	PUSHI 7		-- empiler arg2
+	PUSHA subint	-- adresse fonction
+	CALL 		-- appel
+	POPN 2		--depiler les arguments
+	PUSHA subint
+	CALL
+	POPN 2
+-- afficher le resultat
+	PUSHS "\n"
+	PUSHG 0
+	WRITES
+	PUSHG 1
+	WRITEI
+	PUSHG 2
+	WRITES
+	POPN 3
+	STOP
+-- Ici on s'est arrange pour que les parametres de subint soient juste
+-- en dessous de fp, et l'emplacement du resultat est encore en dessous.
+subint: NOP
+	PUSHL -2	-- 1er parametre de subint = argument gauche de SUB
+	PUSHL -1	-- 2nd parametre de subint = argument droit de SUB
+	SUB		-- depile ses deux arguments et empile le resultat
+	STOREL -3	-- stocke le resultat a son emplacement
+	RETURN 

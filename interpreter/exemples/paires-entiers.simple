@@ -1,0 +1,56 @@
+-- Exemple de code qui manipule des "objets" avec deux champs nommes chp1
+-- et chp2, de types Entier. On alloue 3 objets, supposés nommés a, b et c,
+-- on initialise a avec (33, 55), b avec (66, 44) et c avec
+-- (a.chp1 + b.chp1, a.chp2 - b.chp2)
+-- Cela illustre le fonctionnement de ALLOC, PUSHG, LOAD, STORE
+START
+ALLOC 2		-- a
+DUPN 1		
+PUSHI 33
+STORE 0		-- a.chp1 := 33
+DUPN 1
+PUSHI 55
+STORE 1		-- a.chp2 := 55
+ALLOC 2		-- b
+DUPN 1
+PUSHI 66
+STORE 0		-- b.chp1 := 66
+DUPN 1
+PUSHI 44
+STORE 1		-- b.chp2 := 44
+-- On a fini d'allouer les deux "objets" et de les initialiser
+ALLOC 2		-- c
+DUPN 1			-- on recopie pour garder en tete l'adresse de c.
+PUSHG 0			-- chargement de l'adresse de 'a'
+LOAD 0			-- chargement de la valeur du premier champ de 'a'
+PUSHG 1			-- chargement de l'adresse de 'b'
+LOAD 0			-- chargement de la valeur du premier champ de 'b'
+ADD			-- addition + depilement des operandes
+-- Ici on a le resultat de a.chp1 + b.chp1 en sommet de pile
+-- et l'adresse de 'c' juste en dessous. Il suffit donc de stocker le
+-- resultat de l'addition dans le premier champ de l'objet qui est sous
+-- le sommet de pile.
+STORE 0
+-- On se retrouve dans la situation de depart, avec l'adresse de 'c' en
+-- sommet de pile. On la reduplique pour faire la meme chose pour le deuxieme
+-- champ.		
+DUPN 1
+PUSHG 0
+LOAD 1
+PUSHG 1
+LOAD 1
+SUB
+STORE 1		-- c.chp2 := a.chp2 - b.chp2
+PUSHS "c.chp1="
+WRITES
+DUPN 1
+LOAD 0
+WRITEI
+PUSHS "\nc.chp2="
+WRITES
+DUPN 1
+LOAD 1
+WRITEI
+PUSHS "\n"
+WRITES
+STOP
