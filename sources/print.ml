@@ -1,42 +1,41 @@
 open Ast
 
-let printOp o =
-	match o with
-	Eq		-> Printf.printf " = "
-	| Neq	-> Printf.printf " <> "
-	| Lt	-> Printf.printf " < "
-	| Le	-> Printf.printf " <= "
-	| Gt	-> Printf.printf " > "
-	| Ge	-> Printf.printf " >= "
-
+(* imprime une expression sous forme entierement parenthésée, de façon à
+ * ce qu'on puisse facilement verifier si les précédences et associativités
+ * demandées sont bien respectées.
+ *)
 let rec printExpr e =
 	match e with
-	Id(i)			-> Printf.printf "%s" i
-	| Cste(c)		-> Printf.printf "%i" c
-	| UMinus(e)		-> begin Printf.printf " - "; printExpr e end
-	| Plus(g, d)	-> begin printExpr g; Printf.printf " + "; printExpr d end
-	| Minus(g, d)	-> begin printExpr g; Printf.printf " - "; printExpr d end
-	| Times(g, d)	-> begin printExpr g; Printf.printf " * "; printExpr d end
-	| Div(g, d)		-> begin printExpr g; Printf.printf " / "; printExpr d end
-	| Comp(g, o, d)	-> begin printExpr g; printOp o; printExpr d end
-	| Ite(c, t, e)	->
-		begin
-			Printf.printf "if ";
-			printExpr c;
-			Printf.printf "\n\tthen ";
-			printExpr t;
-			Printf.printf "\nelse\n\t";
-			printExpr e
-		end
+		Id s -> print_string s
+		| Cste i -> print_int i
+		| Plus(g, d) ->
+			print_string "["; printExpr g; print_string " + ";
+			printExpr d; print_string "]"
+		| Minus (g, d) ->
+			print_string "["; printExpr g; print_string " - ";
+			printExpr d; print_string "]"
+		| Times (g, d) ->
+			print_string "["; printExpr g; print_string " * ";
+			printExpr d; print_string "]"
+		| Div (g, d) ->
+			print_string "["; printExpr g; print_string " / ";
+			printExpr d; print_string "]"
+		| UMinus e -> print_string "[ - ";  printExpr e; print_string "]"
+		| Comp(op, g, d) ->
+			print_string "["; printExpr g;
+			print_string (Utils.string_of_relop op); printExpr d; print_string "]"
+		| Ite (si, alors, sinon) ->
+			print_string " IF "; printExpr si;
+			print_string " THEN "; printExpr alors;
+			print_string " ELSE "; printExpr sinon;
+			print_endline "]"
 
 let printDecl d =
-	begin
-		Printf.printf "%s" d.lhs;
-		Printf.printf " := ";
-		printExpr d.rhs
-	end
+	print_string d.lhs; print_string " := "; printExpr d.rhs;
+	print_newline ()
 
-let print decls exp =
-	List.iter printDecl decls;
-	printExpr exp;
-;;
+let printAll ld e =
+	List.iter printDecl ld;
+	printExpr e;
+	print_newline ()
+
