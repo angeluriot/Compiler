@@ -1,0 +1,15 @@
+make.exe --dry-run --always-make --keep-going --print-directory
+make.exe: Entering directory 'c:/Users/Gyro/Documents/POLYTECH/ET4/Compilation/Projet/Compiler/Compiler'
+cp sources/ast.ml sources/compile.ml sources/eval.ml sources/main.ml sources/utils.ml sources/print.ml sources/testLex.ml sources/lex.mll sources/parse.mly build
+make.exe: Leaving directory 'c:/Users/Gyro/Documents/POLYTECH/ET4/Compilation/Projet/Compiler/Compiler'
+ 
+make.exe: *** No rule to make target 'build/parse.mly', needed by 'build/parse.mli'.
+make.exe: *** No rule to make target 'build/ast.ml', needed by 'build/parse.mli'.
+make.exe: *** No rule to make target 'build/utils.ml', needed by 'all'.
+make.exe: *** No rule to make target 'build/print.ml', needed by 'all'.
+make.exe: *** No rule to make target 'build/eval.ml', needed by 'all'.
+make.exe: *** No rule to make target 'build/compile.ml', needed by 'all'.
+make.exe: *** No rule to make target 'build/parse.ml', needed by 'all'.
+make.exe: *** No rule to make target 'build/lex.mll', needed by 'build/lex.ml'.
+make.exe: *** No rule to make target 'build/main.ml', needed by 'all'.
+ 
