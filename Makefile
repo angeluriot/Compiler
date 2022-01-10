@@ -25,7 +25,10 @@ $(GEN_FOLDER)/parse.mli: $(GEN_FOLDER)/parse.mly $(GEN_FOLDER)/ast.ml
 	cd $(GEN_FOLDER) ; menhir --dump --explain --strict parse.mly
 
 copy:
+	mkdir -p $(GEN_FOLDER)
 	cp $(COPIES) $(GEN_FOLDER)
 
 clean:
 	rm -rf $(GEN_FOLDER)/*
+
+re: clean all

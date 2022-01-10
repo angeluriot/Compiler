@@ -22,8 +22,8 @@ let output token =
 		| BEGIN		-> "mot-clef: BEGIN"
 		| EOF		-> (* gere avant l'appel a cette fonction, donc impossible *)
 			failwith "Should not happen in testLex"
-		| UMINUS ->
-			failwith "UMINUS seen in testLex"
+		| UNIT ->
+			failwith "UNIT seen in testLex"
 		| _ -> "Unexpected token in testLex"
 
 (* usage: ./testLex nom-de-fichier

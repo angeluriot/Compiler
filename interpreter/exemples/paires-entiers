@@ -1,5 +1,5 @@
 -- Exemple de code qui manipule des "objets" avec deux champs nommes chp1
--- et chp2, de types Entier. On alloue 3 objets, supposés nommés a, b et c,
+-- et chp2, de types Entier. On alloue 3 objets, supposï¿½s nommï¿½s a, b et c,
 -- on initialise a avec (33, 55), b avec (66, 44) et c avec
 -- (a.chp1 + b.chp1, a.chp2 - b.chp2)
 -- Cela illustre le fonctionnement de ALLOC, PUSHG, LOAD, STORE

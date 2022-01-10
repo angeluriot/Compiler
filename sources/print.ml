@@ -25,17 +25,10 @@ let rec printExpr e =
 			print_string "["; printExpr g;
 			print_string (Utils.string_of_relop op); printExpr d; print_string "]"
 		| Ite (si, alors, sinon) ->
-			print_string " [IF "; printExpr si;
+			print_string " IF "; printExpr si;
 			print_string " THEN "; printExpr alors;
 			print_string " ELSE "; printExpr sinon;
 			print_endline "]"
-        | Selection (g, d) ->
-            print_string "["; printExpr g; 
-            print_string "."; printExpr d; print_string "]"
-        | Instanciation (c, el) ->
-            print_string "[new "; print_string c.nom;
-            print_string "("; printExpr el; print_string ")]"
-        | x::s -> printExpr x; print_string ", "; printExpr s
 
 let printDecl d =
 	print_string d.lhs; print_string " := "; printExpr d.rhs;
@@ -45,3 +38,4 @@ let printAll ld e =
 	List.iter printDecl ld;
 	printExpr e;
 	print_newline ()
+
