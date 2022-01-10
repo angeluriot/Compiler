@@ -78,7 +78,7 @@ constructorParameter:
     | o = boption(VAR) param = separated_list(COMMA, ID) COLON classname = CLASSNAME            { constructorParameter(o, param, classname) }
 
 methodParameter:
-    | param = separated_list(COMMA, ID) COLON classname = CLASSNAME                             { }
+    | param = separated_list(COMMA, ID) COLON classname = CLASSNAME                             {param, classname }
 
 classElement:
     // field
@@ -92,9 +92,9 @@ classElement:
       superclasseOpt = option(COLON superclass = CLASSNAME { superclass }) IS b = bloc          { }
 
 bloc:
-    | l = delimited(LBRACE, list(instruction), RBRACE)                                          { }
+    | l = delimited(LBRACE, list(instruction), RBRACE)                                          {l }
     | LBRACE var = separated_nonempty_list(COMMA, methodParameter) IS
-      li = nonempty_list(instruction) RBRACE                                                    { }
+      li = nonempty_list(instruction) RBRACE                                                    {var, li }
 
 expression:
     // Identificateur
@@ -126,7 +126,7 @@ expression:
     | MINUS e = expression %prec UMINUS                                                         { UMinus e }
 
 selection:
-    | e = expression DOT x = ID                                                                 { }
+    | e = expression DOT x = ID                                                                 {e, x }
 
 message:
     | x= ID lparam = delimited(LPAREN, separated_list(COMMA, expression), RPAREN)               { x, lparam }
