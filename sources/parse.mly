@@ -137,6 +137,6 @@ instruction:
     // return;
     | RETURN SEMICOLON                                                                          { Return }
     // cible := Expression
-    | e1 = expression ASSIGN e2 = expression SEMICOLON                                          { AffectationField(e1, e2) }
+    | e1 = expression ASSIGN e2 = expression SEMICOLON                                          { }
     // if Expression then Instruction else Instruction
     | IF si = expression THEN alors = instruction ELSE sinon = instruction                      { Ite(si, alors, sinon) }
