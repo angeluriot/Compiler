@@ -36,6 +36,13 @@
 %token    IS
 %token    VAR
 
+%token    COMMA
+%token    DOT
+%token    NEW
+
+%token    THIS
+%token    SUPER
+
 // tokens instructions
 %token    RETURN
 %token    ASSIGN
@@ -43,12 +50,12 @@
 
 %token    EOF
 
-%right    ELSE
 %left     CONCAT
 %nonassoc RELOP
 %left     PLUS MINUS        /* lowest precedence */
 %left     TIMES DIV         /* medium precedence */
 %left     UMINUS            /* highest precedence */
+%left     DOT
 
 // %type <expType> expression
 // %type <decl> declaration
@@ -67,12 +74,7 @@ declaration:
     | CLASS classname = CLASSNAME 
       lparam = delimited(LPAREN, separated_list(COMMA, constructorParameter), RPAREN)
       superclasseOpt = option(EXTENDS superclass = CLASSNAME { superclass }) IS 
-      LBRACE ce1 = list(classElement) c = constructor ce2 = list(classElement) RBRACE           { decl(classname, lparam, superclasseOpt, ce1, c, ce2) }
-
-constructor:
-    | DEF classname = CLASSNAME lparam = delimited(LPAREN, list(constructorParameter), RPAREN)
-      superclassOpt = option(COLON superclass = CLASSNAME { superclass }) IS
-      li = delimited(LBRACE, list(instruction) , RBRACE)                                        { constructor(classname, lparam, superclassOpt, li) }
+      LBRACE ce = list(classElement) RBRACE                                                     { decl(classname, lparam, superclasseOpt, ce) }
 
 constructorParameter:
     | o = boption(VAR) param = separated_list(COMMA, ID) COLON classname = CLASSNAME            { constructorParameter(o, param, classname) }
@@ -90,6 +92,10 @@ classElement:
     | DEF s = boption(STATIC) o = boption(OVERRIDE) nom = ID 
       lparam = delimited(LPAREN, separated_list(COMMA, constructorParameter), RPAREN)
       superclasseOpt = option(COLON superclass = CLASSNAME { superclass }) IS b = bloc          { }
+    // constructor
+    | DEF classname = CLASSNAME lparam = delimited(LPAREN, list(constructorParameter), RPAREN)
+      superclassOpt = option(COLON superclass = CLASSNAME { superclass }) IS
+      li = delimited(LBRACE, list(instruction) , RBRACE)                                        { constructor(classname, lparam, superclassOpt, li) }
 
 bloc:
     | l = delimited(LBRACE, list(instruction), RBRACE)                                          {l }
@@ -103,18 +109,16 @@ expression:
     | v = CSTE                                                                                  { Cste v }
     // String
     | s = STRING                                                                                { }
-    // ClassName
-    | c = CLASSNAME                                                                             { }
     // (Expression)
     | e = delimited(LPAREN, expression, RPAREN)                                                 { e }
     // (NomClasse Expression)
-    | LPAREN x = ID e = expression RPAREN                                                       { }
-    // Sélection // expression.nom
-    | s = selection                                                                             { }
+    | LPAREN x = CLASSNAME e = expression RPAREN                                                { }
+    // Sélection / Envoi de messages
+    | e = expression DOT m = ID                                                                 { }
+    | e = expression DOT m = ID
+      lparam = delimited(LPAREN, separated_list(COMMA, expression), RPAREN)                     { }
     // Instanciation
     | NEW x = CLASSNAME lparam = delimited(LPAREN, separated_list(COMMA, expression), RPAREN)   { }
-    // Envoi de message
-    | x = ID DOT lm = separated_list(DOT, message)                                              { }
     // Expression avec opérateur
     | g = expression op = RELOP d = expression                                                  { Comp(op, g, d) }
     | g = expression PLUS d = expression                                                        { Plus (g, d) }
@@ -122,24 +126,17 @@ expression:
     | g = expression TIMES d = expression                                                       { Times(g, d) }
     | g = expression DIV d = expression                                                         { Div(g, d) }
     | g = expression CONCAT d = expression                                                      { }
-    | PLUS e = expression                                                                       { e }
+    | PLUS e = expression  %prec UMINUS                                                         { e }
     | MINUS e = expression %prec UMINUS                                                         { UMinus e }
-
-selection:
-    | e = expression DOT x = ID                                                                 {e, x }
-
-message:
-    | x= ID lparam = delimited(LPAREN, separated_list(COMMA, expression), RPAREN)               { x, lparam }
 
 instruction:
     // Expression;
-    | e = expression SEMICOLON                                                                  { }
+    | e = expression SEMICOLON                                                                  { e }
     // bloc
-    | b = bloc                                                                                  { }
+    | b = bloc                                                                                  { b }
     // return;
-    | RETURN SEMICOLON                                                                          { }
+    | RETURN SEMICOLON                                                                          { Return }
     // cible := Expression
-    | x = ID ASSIGN e = expression                                                              { }
-    | s = selection ASSIGN e = expression                                                       { }
+    | e1 = expression ASSIGN e2 = expression SEMICOLON                                          { AffectationField(e1, e2) }
     // if Expression then Instruction else Instruction
     | IF si = expression THEN alors = instruction ELSE sinon = instruction                      { Ite(si, alors, sinon) }
