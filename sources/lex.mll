@@ -40,6 +40,9 @@ let chiffre = ['0'-'9']
 let LC = ( chiffre | lettre | lettreMaj )
 let LDebut = ( lettre | lettreMaj )
 
+let ident = lettre LC*
+let uident = lettreMaj LC*
+
 rule
  comment = parse
              "*/" { (* fin de commentaire trouvee. Le commentaire ne doit pas
@@ -94,7 +97,7 @@ and
                     }
 and
  token = parse
-      lettre LC * as id
+      ident as id
       { (* id contient le texte reconnu. On verifie s'il s'agit d'un mot-clef
          * auquel cas on renvoie le token associe. Sinon on renvoie Id avec le
          * texte reconnu en valeur 
@@ -103,14 +106,14 @@ and
           Hashtbl.find keyword_table id
         with Not_found -> ID id
       }
-  | lettre LDebut * as id
+  | uident as classname
       { (* id contient le texte reconnu. On verifie s'il s'agit d'un mot-clef
          * auquel cas on renvoie le token associe. Sinon on renvoie Id avec le
          * texte reconnu en valeur 
          *)
         try
-          Hashtbl.find keyword_table id
-        with Not_found -> ID id
+          Hashtbl.find keyword_table classname
+        with Not_found -> CLASSNAME classname
       }
   | [' ''\t''\r']+  { (* consommer les delimiteurs, ne pas les transmettre
                        * et renvoyer ce que renverra un nouvel appel a
