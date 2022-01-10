@@ -67,15 +67,15 @@ declaration:
     | CLASS classname = CLASSNAME 
       lparam = delimited(LPAREN, separated_list(COMMA, constructorParameter), RPAREN)
       superclasseOpt = option(EXTENDS superclass = CLASSNAME { superclass }) IS 
-      LBRACE ce1 = list(classElement) c = constructor ce2 = list(classElement) RBRACE           { }
+      LBRACE ce1 = list(classElement) c = constructor ce2 = list(classElement) RBRACE           { decl(classname, lparam, superclasseOpt, ce1, c, ce2) }
 
 constructor:
     | DEF classname = CLASSNAME lparam = delimited(LPAREN, list(constructorParameter), RPAREN)
       superclassOpt = option(COLON superclass = CLASSNAME { superclass }) IS
-      li = delimited(LBRACE, list(instruction) , RBRACE)                                        { }
+      li = delimited(LBRACE, list(instruction) , RBRACE)                                        { constructor(classname, lparam, superclassOpt, li) }
 
 constructorParameter:
-    | o = boption(VAR) param = separated_list(COMMA, ID) COLON classname = CLASSNAME            { }
+    | o = boption(VAR) param = separated_list(COMMA, ID) COLON classname = CLASSNAME            { constructorParameter(o, param, classname) }
 
 methodParameter:
     | param = separated_list(COMMA, ID) COLON classname = CLASSNAME                             { }
