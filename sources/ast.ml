@@ -25,8 +25,25 @@ type cast = {
 }
 
 type decl = {
-    l: string
-    r: expr
+    classname: string;
+    lparam: constructorParameter list;
+    superclasseOpt: option;
+    ce1: classElement list;
+    c: constructor;
+    ce2: classElement list;
+}
+
+type constructor = {
+    classname: string;
+    lparam: constructorParameter list;
+    superclasseOpt: option;
+    corps: instructions;
+}
+
+type constructorParameter = {
+    superclasseOpt: option;
+    param: expr list;
+    classname: string;
 }
 
 type parametre = {
