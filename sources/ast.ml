@@ -1,5 +1,6 @@
 type opComp =
-	Eq | Neq | Lt | Le | Gt | Ge;;
+	Eq | Neq | Lt | Le | Gt | Ge
+;;
 
 type expr =
 	Id of string
@@ -15,50 +16,54 @@ type expr =
 	| Times of expr * expr
 	| Div of expr * expr
 	| Concat of expr * expr
-	| UMinus of expr;;
+	| UMinus of expr
+;;
 
-type 'a option = Sum of 'a | None;;
+type 'a option = Sum of 'a | None
+;;
 
 type constrParam = {
 	var: bool;
 	param: string list;
 	classname: string;
-};;
+}
+;;
 
 type methodParam = {
 	param: string list;
 	classname: string;
-};;
+}
+;;
 
 type instr =
 	Expr of expr
 	| Return
 	| Assignment of expr * expr
-	| Ite of expr * instr * instr;;
+	| Ite of expr * instr * instr
+;;
 
-type blockType = {
-	instrs: instr list;
-};;
+type blockType =
+	Instrs of instr list
+;;
+
 
 type classElem =
 	Field of bool * string * string
-	| Constr of string * constrParam list * string option * instr list
+	| Constr of string * constrParam list * string option * blockType
 	| SimpleMethod of bool * bool * string * constrParam list * string * expr
-	| ComplexMethod of bool * bool * string * constrParam list * string * blockType;;
+	| ComplexMethod of bool * bool * string * constrParam list * string * blockType
+;;
 
 type decl = {
 	classname: string;
 	lparam: constrParam list;
 	superClassOpt: string option;
 	ce: classElem list;
-};;
-
-type cast = {
-	className: string;
-	expression: expr;
-};;
+}
+;;
 
 type prog = {
 	classes: decl list;
 	instrs: instr list
-};;
+}
+;;

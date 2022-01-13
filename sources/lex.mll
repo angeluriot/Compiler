@@ -141,6 +141,7 @@ rule
 		| "||"				{ OR  }
 		| '"'				{ str lexbuf }
 		| '\''				{ QUOTE }
+		| '"'				{ DOUBLEQUOTE }
 		| ','				{ COMMA }
 		| '.'				{ DOT }
 		| eof				{ EOF }

@@ -27,6 +27,9 @@
 // ':' and ';' tokens
 %token	COLON SEMICOLON
 
+// '\'' and '"' tokens
+%token QUOUTE DOUBLEQUOTE
+
 // Classes tokens
 %token	CLASS
 %token	DEF
@@ -72,18 +75,18 @@ declaration:
 		lparam = delimited(LPAREN, separated_list(COMMA,
 		constructorParameters), RPAREN) superClassOpt =
 		option(EXTENDS superClass = CLASSNAME { superClass }) IS
-		LBRACE ce = list(classElement) RBRACE									{ decl(className, lparam, superClassOpt, ce) }
+		ce = delimited(LBRACE, list(classElement), RBRACE)						{ decl(className, lparam, superClassOpt, ce) }
 
 constructorParameters:
 
 	// Constructor parameters
-	| o = boption(VAR) param = separated_list(COMMA, ID)
+	| o = boption(VAR) param = separated_nonempty_list(COMMA, ID)
 		COLON className = CLASSNAME												{ constrParam(o, param, className) }
 
 methodParameters:
 
 	// Method parameters
-	| param = separated_list(COMMA, ID) COLON className = CLASSNAME				{ methodParam(param, className) }
+	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME	{ methodParam(param, className) }
 
 classElement:
 
@@ -95,7 +98,7 @@ classElement:
 	| DEF className = CLASSNAME
 		lparam = delimited(LPAREN, list(constructorParameters), RPAREN)
 		superClassOpt = option(COLON superClass = CLASSNAME { superClass })
-		IS li = delimited(LBRACE, list(instruction) , RBRACE)					{ Constr(className, lparam, superClassOpt, li) }
+		IS b = block															{ Constr(className, lparam, superClassOpt, b) }
 
 	// Simple Methods
 	| DEF s = boption(STATIC) o = boption(OVERRIDE) name = ID
@@ -111,7 +114,7 @@ classElement:
 block:
 
 	// Instructions block
-	| l = delimited(LBRACE, list(instruction), RBRACE)							{ block(l) }
+	| l = delimited(LBRACE, list(instruction), RBRACE)							{ BlocType(l) }
 
 	// ???
 	| LBRACE var = separated_nonempty_list(COMMA, methodParameters) IS
@@ -126,7 +129,7 @@ expression:
 	| v = CSTE																	{ Cste v }
 
 	// String
-	| s = STRING																{ String s }
+	| s = delimited(DOUBLEQUOTE ,STRING, DOUBLEQUOTE)							{ String s }
 
 	// Expression in parentheses
 	| e = delimited(LPAREN, expression, RPAREN)									{ e }
