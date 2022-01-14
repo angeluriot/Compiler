@@ -118,13 +118,18 @@ let rec printInstr i =
 (*
 	Affiche un bloc potentiellement vide d'instructions
 *)
-let printBlocType b =
-	Printf.printf "[[token: lbrace]\n";
-	match b with Instrs li -> List.iter (fun i -> printInstr i) li;
-	Printf.printf "[token: rbrace]]\n";
+let printBlocType b = 
+    Printf.printf "[[token: lbrace]\n";
+    match b with
+    | Block li -> List.iter (fun i -> printInstr i) li
+	| BlockVar (methodParams, li) ->
+        List.iter (fun p -> printMethodParam p) methodParams;
+        Printf.printf " [token: is] ";
+        List.iter (fun i -> printInstr i) li;
+	Printf.printf "[token: rbrace]]\n"
 ;;
 
-let rec printConstrLParam l =match l with
+let rec printConstrLParam l = match l with
 	| [] -> ()
 	| [p] -> printConstrParam p
 	| p :: s ->
@@ -197,4 +202,3 @@ let printProg p =
 	List.iter printInstr p.instrs;
 	Printf.printf "[token: rbrace]\n]\n"
 ;;
-
