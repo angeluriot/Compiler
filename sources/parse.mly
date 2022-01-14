@@ -27,9 +27,6 @@
 // ':' and ';' tokens
 %token	COLON SEMICOLON
 
-// '\'' and '"' tokens
-%token QUOUTE DOUBLEQUOTE
-
 // Classes tokens
 %token	CLASS
 %token	DEF
@@ -41,6 +38,9 @@
 %token	COMMA
 %token	DOT
 %token	NEW
+%token  THIS
+%token  SUPER
+%token  RESULT
 
 // Instruction tokens
 %token	RETURN
@@ -60,13 +60,20 @@
 
 // Main rule
 %start	<Ast.prog>	program
+%type   <Ast.decl> declaration
+%type   <Ast.constrParam> constructorParameters
+%type   <Ast.methodParam> methodParameters
+%type   <Ast.classElem> classElement
+%type   <Ast.blockType> block
+%type   <Ast.expr> expression
+%type   <Ast.instr> instruction
 %%
 
 program:
 
 	// Program
 	| ld = list(declaration)
-		li = delimited(LBRACE, list(instruction), RBRACE) EOF					{ prog(ld, li) }
+		li = delimited(LBRACE, list(instruction), RBRACE) EOF					{ { classes = ld; instrs = li } }
 
 declaration:
 
@@ -75,18 +82,18 @@ declaration:
 		lparam = delimited(LPAREN, separated_list(COMMA,
 		constructorParameters), RPAREN) superClassOpt =
 		option(EXTENDS superClass = CLASSNAME { superClass }) IS
-		ce = delimited(LBRACE, list(classElement), RBRACE)						{ decl(className, lparam, superClassOpt, ce) }
+		ce = delimited(LBRACE, list(classElement), RBRACE)						{ { classname = className; lparam = lparam; superClassOpt = superClassOpt; ce = ce } }
 
 constructorParameters:
 
 	// Constructor parameters
 	| o = boption(VAR) param = separated_nonempty_list(COMMA, ID)
-		COLON className = CLASSNAME												{ constrParam(o, param, className) }
+		COLON className = CLASSNAME												{ { var = o; param = param; classname = className } }
 
 methodParameters:
 
 	// Method parameters
-	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME	{ methodParam(param, className) }
+	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME	{ { param = param; classname = className } }
 
 classElement:
 
@@ -109,7 +116,8 @@ classElement:
 	// Complex Methods
 	| DEF s = boption(STATIC) o = boption(OVERRIDE) name = ID
 		lparam = delimited(LPAREN, separated_list(COMMA,
-		constructorParameters), RPAREN) className = CLASSNAME IS b = block		{ ComplexMethod(s, o, name, lparam, className, b) }
+		constructorParameters), RPAREN) superClassOpt = 
+        option(COLON superClass = CLASSNAME { superClass }) IS b = block		{ ComplexMethod(s, o, name, lparam, superClassOpt, b) }
 
 block:
 
@@ -125,11 +133,20 @@ expression:
 	// Identifier
 	| x = ID																	{ Id x }
 
+    // result
+    | RESULT                                                                    { Result }
+
+    // this
+    | THIS                                                                      { This }
+
+    // super
+    | SUPER                                                                     { Super }
+
 	// Integer constant
 	| v = CSTE																	{ Cste v }
 
 	// String
-	| s = delimited(DOUBLEQUOTE ,STRING, DOUBLEQUOTE)							{ String s }
+	| s = STRING                                    							{ String s }
 
 	// Expression in parentheses
 	| e = delimited(LPAREN, expression, RPAREN)									{ e }
@@ -162,9 +179,6 @@ instruction:
 
 	// Expression with a semicolon
 	| e = expression SEMICOLON													{ Expr e }
-
-	// Block
-	| b = block																	{ b }
 
 	// Return whit a semicolon
 	| RETURN SEMICOLON															{ Return }
