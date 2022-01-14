@@ -33,6 +33,9 @@ let rec printExpr e =
 	in
 	match e with
 	| Id			s				-> Printf.printf "[token: id: %s]" s
+	| Result                        -> Printf.printf "[token: result]"
+	| This                          -> Printf.printf "[token: this]"
+	| Super                         -> Printf.printf "[token: super]"
 	| Cste			e				-> Printf.printf "[token: cste: %i]" e
 	| String 		s				-> Printf.printf "[[token: double-quote] [token: string: %s] [token: double-quote]]" s
 	| Cast			(classname, e) 	-> Printf.printf "[[token: lparen] [token: classname: %s] " classname;
@@ -119,13 +122,13 @@ let rec printInstr i =
 	Affiche un bloc potentiellement vide d'instructions
 *)
 let printBlocType b = 
-	Printf.printf "[[token: lbrace]\n";
-	match b with
-	| Block li -> List.iter (fun i -> printInstr i) li
+    Printf.printf "[[token: lbrace]\n";
+    match b with
+    | Block li -> List.iter (fun i -> printInstr i) li
 	| BlockVar (methodParams, li) ->
-		List.iter (fun p -> printMethodParam p) methodParams;
-		Printf.printf " [token: is] ";
-		List.iter (fun i -> printInstr i) li;
+        List.iter (fun p -> printMethodParam p) methodParams;
+        Printf.printf " [token: is] ";
+        List.iter (fun i -> printInstr i) li;
 	Printf.printf "[token: rbrace]]\n"
 ;;
 
@@ -163,7 +166,7 @@ let printClassElem e = match e with
 			Printf.printf " [token: rparen] ";
 			match superClassOpt with
 			| None -> ()
-			| Sum s -> Printf.printf "[token: colon] [token: classname: %s] " s;
+			| Some s -> Printf.printf "[token: colon] [token: classname: %s] " s;
 			Printf.printf "[token: is]\n";
 			printBlocType bloc;
 			Printf.printf "[token: rbrace]\n]"
@@ -175,10 +178,18 @@ let printClassElem e = match e with
 			printExpr e;
 			Printf.printf "[token: semi-colon]]\n"
 		)
-	| ComplexMethod (isStatic, isOverridden, name, lparam, classname, block) -> 
+	| ComplexMethod (isStatic, isOverridden, name, lparam, superClassOpt, block) -> 
 		(
 			Printf.printf "[";
-			printMethodWithoutInstr isStatic isOverridden name lparam classname;
+            match superClassOpt with
+			| None -> 	Printf.printf "[token: def] ";
+	                    if isStatic then Printf.printf "[token: static] ";
+	                    if isOverridden then Printf.printf "[token: override] ";
+	                    Printf.printf "[token: id: %s] " name;
+	                    Printf.printf "[token: lparen] ";
+	                    printConstrLParam lparam;
+	                    Printf.printf "[token: rparen] [token: assign] " 
+            | Some s -> printMethodWithoutInstr isStatic isOverridden name lparam s;
 			printBlocType block;
 			Printf.printf "[token: semi-colon]]\n"
 		)
@@ -189,7 +200,7 @@ let printDecl c =
 	printConstrLParam c.lparam;
 	match c.superClassOpt with
 	| None -> ()
-	| Sum s -> Printf.printf "[token: extends] [token: classname: %s] " s;
+	| Some s -> Printf.printf "[token: extends] [token: classname: %s] " s;
 	Printf.printf "[token: is]\n[token: lbrace]\n";
 	List.iter (fun e -> printClassElem e) c.ce;
 	Printf.printf "]\n"
