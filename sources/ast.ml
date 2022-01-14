@@ -13,6 +13,8 @@ type expr =
 	| Instantiation of string * expr list
 	| FieldAccess of expr * string
 	| MethodCall of expr * string * expr list
+	| StaticFieldAccess of string * string
+	| StaticMethodCall of string * string * expr list
 	| Comp of opComp * expr * expr
 	| Plus of expr * expr
 	| Minus of expr * expr
@@ -40,11 +42,11 @@ type instr =
 	| Return
 	| Assignment of expr * expr
 	| Ite of expr * instr * instr
-;;
-
-type blockType =
+	| BlockInstr of blockType
+and
+blockType =
 	| Block of instr list
-    | BlockVar of methodParam list * instr list
+  | BlockVar of methodParam list * instr list
 ;;
 
 type classElem =

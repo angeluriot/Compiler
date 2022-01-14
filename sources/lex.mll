@@ -135,6 +135,7 @@ rule
 		| '}'				{ RBRACE }
 		| ':'				{ COLON }
 		| ';'				{ SEMICOLON }
+		| '&'				{ CONCAT }
 		| ":="				{ ASSIGN }
 		| "<"				{ RELOP (Ast.Lt) }
 		| "<="				{ RELOP (Ast.Le) }

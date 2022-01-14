@@ -99,11 +99,12 @@ classElement:
 
 	// Fields
 	| VAR s = boption(STATIC) name = ID COLON
-		className = CLASSNAME SEMICOLON											{ Field(s, name, className) }
+		className = CLASSNAME											{ Field(s, name, className) }
 
 	// Constructors
 	| DEF className = CLASSNAME
-		lparam = delimited(LPAREN, list(constructorParameters), RPAREN)
+		lparam = delimited(LPAREN, separated_list(COMMA,
+		constructorParameters), RPAREN)
 		superClassOpt = option(COLON superClass = CLASSNAME { superClass })
 		IS b = block															{ Constr(className, lparam, superClassOpt, b) }
 
@@ -161,9 +162,16 @@ expression:
 	// Field access
 	| e = expression DOT x = ID													{ FieldAccess(e, x) }
 
+	// Field access
+	| c = CLASSNAME DOT x = ID													{ StaticFieldAccess(c, x) }
+
 	// Method call
 	| e = expression DOT x = ID lparam = delimited(LPAREN,
 		separated_list(COMMA, expression), RPAREN)								{ MethodCall(e, x, lparam) }
+
+	// Method call
+	| c = CLASSNAME DOT x = ID lparam = delimited(LPAREN,
+		separated_list(COMMA, expression), RPAREN)								{ StaticMethodCall(c, x, lparam) }
 
 	// Operator expressions
 	| l = expression op = RELOP r = expression									{ Comp(op, l, r) }
@@ -188,3 +196,5 @@ instruction:
 
 	// If then else
 	| IF i = expression THEN t = instruction ELSE e = instruction				{ Ite(i, t, e) }
+
+	| b = block 																{ BlockInstr(b) }
