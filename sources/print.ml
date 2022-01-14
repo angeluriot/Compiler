@@ -206,7 +206,7 @@ let printClassElem e =
 		printExpr e;
 		Printf.printf "[token: semi-colon]]\n"
 		)
-	| ComplexMethod (isStatic, isOverridden, name, lparam, superClassOpt, block) -> 
+	| ComplexMethod (isStatic, isOverridden, name, lparam, superClassOpt, block) ->
 		(
 		Printf.printf "[";
 		match superClassOpt with
