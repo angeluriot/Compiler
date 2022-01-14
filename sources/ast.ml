@@ -44,7 +44,7 @@ type instr =
 
 type blockType =
 	| Block of instr list
-    | BlockVar of methodParam list * instr list
+	| BlockVar of methodParam list * instr list
 ;;
 
 type classElem =
