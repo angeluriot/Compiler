@@ -170,7 +170,7 @@ class DefaultPoint() extends PointColore is {
 
 class Test () is {
    def static test(p: Point, p2: PointColore, p3: PointNoir) is {
-      c, c2, c3: String
+      c, c2, c3: String,
       true: Integer
       is
       true := 1;
@@ -195,10 +195,10 @@ class Test () is {
 }
 
 { /* Bloc qui correspond au programme principal */
-  p1, p2, p3, clone1, clone2: Point
-  true, false, fv: Integer
-  o: PointColore
-  pn: PointNoir
+  p1, p2, p3, clone1, clone2: Point,
+  true, false, fv: Integer,
+  o: PointColore,
+  pn: PointNoir,
   dp: DefaultPoint
   is
   "Debut du programme".println();
