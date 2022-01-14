@@ -4,6 +4,9 @@ type opComp =
 
 type expr =
 	Id of string
+    | Result
+    | This
+    | Super
 	| Cste of int
 	| String of string
 	| Cast of string * expr
@@ -17,9 +20,6 @@ type expr =
 	| Div of expr * expr
 	| Concat of expr * expr
 	| UMinus of expr
-;;
-
-type 'a option = Sum of 'a | None
 ;;
 
 type constrParam = {
@@ -44,14 +44,14 @@ type instr =
 
 type blockType =
 	| Block of instr list
-	| BlockVar of methodParam list * instr list
+    | BlockVar of methodParam list * instr list
 ;;
 
 type classElem =
 	Field of bool * string * string
 	| Constr of string * constrParam list * string option * blockType
 	| SimpleMethod of bool * bool * string * constrParam list * string * expr
-	| ComplexMethod of bool * bool * string * constrParam list * string * blockType
+	| ComplexMethod of bool * bool * string * constrParam list * string option * blockType
 ;;
 
 type decl = {
@@ -64,6 +64,10 @@ type decl = {
 
 type prog = {
 	classes: decl list;
-	instrs: instr list
+	instrs: instr list;
 }
 ;;
+
+exception VC_Error of string
+exception RUN_Error of string
+exception MISC_Error of string
