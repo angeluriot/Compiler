@@ -46,7 +46,6 @@ type blockType =
 	Instrs of instr list
 ;;
 
-
 type classElem =
 	Field of bool * string * string
 	| Constr of string * constrParam list * string option * blockType
