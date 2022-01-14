@@ -43,7 +43,8 @@ type instr =
 ;;
 
 type blockType =
-	Instrs of instr list
+	| Block of instr list
+    | BlockVar of methodParam list * instr list
 ;;
 
 type classElem =
