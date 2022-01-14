@@ -1,6 +1,6 @@
 {
 	open Ast
-	open TpParse
+	open Parse
 	open Lexing
 	exception Eof
 
@@ -26,9 +26,7 @@
 			"new", NEW;
 			"if", IF;
 			"then", THEN;
-			"else", ELSE;
-			"begin", BEGIN;
-			"end", END
+			"else", ELSE
 		]
 }
 
@@ -93,15 +91,11 @@ rule
 						}
 	and
 	token = parse
-		lettre LC * as id
+		| lettreMaj LC * as classname
 		{
-			(* id contient le texte reconnu. On verifie s'il s'agit d'un mot-clef
-			 * auquel cas on renvoie le token associe. Sinon on renvoie Id avec le
-			 * texte reconnu en valeur *)
-			try
-				Hashtbl.find keyword_table id
-			with Not_found -> ID id
+			CLASSNAME classname
 		}
+
 		| lettre LDebut * as id
 		{
 			(* id contient le texte reconnu. On verifie s'il s'agit d'un mot-clef
@@ -111,6 +105,17 @@ rule
 				Hashtbl.find keyword_table id
 			with Not_found -> ID id
 		}
+
+		| lettre LC * as id
+		{
+			(* id contient le texte reconnu. On verifie s'il s'agit d'un mot-clef
+			 * auquel cas on renvoie le token associe. Sinon on renvoie Id avec le
+			 * texte reconnu en valeur *)
+			try
+				Hashtbl.find keyword_table id
+			with Not_found -> ID id
+		}
+
 		| [' ''\t''\r']+	{
 								(* consommer les delimiteurs, ne pas les transmettre
 								 * et renvoyer ce que renverra un nouvel appel a
@@ -137,11 +142,7 @@ rule
 		| ">="				{ RELOP (Ast.Ge) }
 		| "="				{ RELOP (Ast.Eq) }
 		| "<>"				{ RELOP (Ast.Neq) }
-		| "&&"				{ AND }
-		| "||"				{ OR  }
-		| '"'				{ str lexbuf }
-		| '\''				{ QUOTE }
-		| '"'				{ DOUBLEQUOTE }
+		| '"'				{ str (Buffer.create 20) lexbuf }
 		| ','				{ COMMA }
 		| '.'				{ DOT }
 		| eof				{ EOF }
