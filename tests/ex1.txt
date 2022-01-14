@@ -1,17 +1,17 @@
 class Point(var x, y: Integer, var name: String) is {
-  var static next : Integer;
+  var static next : Integer
   def static incr() : Integer is
      { Point.next := Point.next + 1; result := Point.next; }
   def static howMany() : Integer := Point.next
   def static init () is { Point.next := 0; }
 
   /* attributs supplementaires à initialiser dans le constructeur */
-  var hasClone : Integer;
-  var index : Integer;  
+  var hasClone : Integer
+  var index : Integer 
   /* la valeur du champ ci-dessous est indefinie si hasClone vaut 0.
    * Le probleme est qu'on n'a pas l'equivalent de NULL (du bon type)
    */
-  var clone : Point;
+  var clone : Point
 
 
   /* L'en-tete du constructeur doit etre identique a celui de la classe.
@@ -68,16 +68,8 @@ class Point(var x, y: Integer, var name: String) is {
     else { }
   }
 
-  def egal(p: Point) : Integer is {
-   /* ils sont egaux s'ils ont memes coordonnees */
-       b1, b2 : Integer;
-       is
-       b1 := p.x - this.x; b2 := p.y - this.y;
-       if b1 then return 0; else return b2 = 0;
-  }
-
-  def egal2(p: Point) : Integer is {  /* autre version */
-    b1, b2: Integer;
+  def egal(p: Point) : Integer is {  /* autre version */
+    b1, b2: Integer
     is
     b1 := p.x - this.x;
     b2 := p.y - this.y;
@@ -97,11 +89,11 @@ class Couleur(var coul: Integer) is {
    }
 
    def name(verbose: Integer) : String is {
-      aux: String;
+      aux: String
       is
       if verbose then "Inside Couleur::couleur".println(); else {}
       if this.coul = 0 then result:= "Blanc";
-      else { dummy : String;
+      else { dummy : String
              is
 	     dummy := "Noir"; aux := "Gris";
              if this.coul = 1 then aux := dummy; else { }
@@ -116,7 +108,7 @@ class Couleur(var coul: Integer) is {
 }
 
 class CouleurFactory() is {
-   var static theBlanc, theNoir, theGris : Couleur;
+   var static theBlanc, theNoir, theGris : Couleur
 
    def CouleurFactory() is {}
 
@@ -125,9 +117,9 @@ class CouleurFactory() is {
       CouleurFactory.theNoir  := new Couleur(1);
       CouleurFactory.theGris  := new Couleur(2);
    }
-   def blanc() : Couleur := CouleurFactory.theBlanc
-   def noir()  : Couleur := CouleurFactory.theNoir
-   def gris()  : Couleur := CouleurFactory.theGris
+   def static blanc() : Couleur := CouleurFactory.theBlanc
+   def static noir()  : Couleur := CouleurFactory.theNoir
+   def static gris()  : Couleur := CouleurFactory.theGris
 }
 
 /* ci-dessous on ne met pas var devant x et y sinon ca definirait deux
@@ -178,8 +170,8 @@ class DefaultPoint() extends PointColore is {
 
 class Test () is {
    def static test(p: Point, p2: PointColore, p3: PointNoir) is {
-      c, c2, c3: String;
-      true: Integer;
+      c, c2, c3: String
+      true: Integer
       is
       true := 1;
       p.print(true);
@@ -203,11 +195,11 @@ class Test () is {
 }
 
 { /* Bloc qui correspond au programme principal */
-  p1, p2, p3, clone1, clone2: Point;
-  true, false, fv: Integer;
-  o: PointColore;
-  pn: PointNoir;
-  dp: DefaultPoint;
+  p1, p2, p3, clone1, clone2: Point
+  true, false, fv: Integer
+  o: PointColore
+  pn: PointNoir
+  dp: DefaultPoint
   is
   "Debut du programme".println();
   Point.init();
