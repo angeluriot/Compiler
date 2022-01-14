@@ -181,15 +181,15 @@ let printClassElem e = match e with
 	| ComplexMethod (isStatic, isOverridden, name, lparam, superClassOpt, block) -> 
 		(
 			Printf.printf "[";
-            match superClassOpt with
+			match superClassOpt with
 			| None -> 	Printf.printf "[token: def] ";
-	                    if isStatic then Printf.printf "[token: static] ";
-	                    if isOverridden then Printf.printf "[token: override] ";
-	                    Printf.printf "[token: id: %s] " name;
-	                    Printf.printf "[token: lparen] ";
-	                    printConstrLParam lparam;
-	                    Printf.printf "[token: rparen] [token: assign] " 
-            | Some s -> printMethodWithoutInstr isStatic isOverridden name lparam s;
+						if isStatic then Printf.printf "[token: static] ";
+						if isOverridden then Printf.printf "[token: override] ";
+						Printf.printf "[token: id: %s] " name;
+						Printf.printf "[token: lparen] ";
+						printConstrLParam lparam;
+						Printf.printf "[token: rparen] [token: assign] "
+			| Some s -> printMethodWithoutInstr isStatic isOverridden name lparam s;
 			printBlocType block;
 			Printf.printf "[token: semi-colon]]\n"
 		)

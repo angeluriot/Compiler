@@ -45,13 +45,13 @@ let parse_with_error lexbuf file_in chan =
 		 * qu'à celle de l'expression entre le begin et le end
 		 * Lance l'exception RUN_error en cas d'erreur à l'exécution
 		 *)
-(*
+		(*
 		let res = Eval.eval ld e in
 		print_string "Evaluation finale: ";  print_int res; print_newline ();
 
 		(* partie compilation: on engendre du code pour la machine abstraite *)
 		Compile.compile ld e chan;
-*)
+		*)
 	with (* traite exception général ... *)
 		Parse.Error -> (* levée par l'analyseur syntaxique *)
 		Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf;

@@ -118,7 +118,7 @@ classElement:
 	| DEF s = boption(STATIC) o = boption(OVERRIDE) name = ID
 		lparam = delimited(LPAREN, separated_list(COMMA,
 		constructorParameters), RPAREN) superClassOpt = 
-        option(COLON superClass = CLASSNAME { superClass }) IS b = block		{ ComplexMethod(s, o, name, lparam, superClassOpt, b) }
+		option(COLON superClass = CLASSNAME { superClass }) IS b = block		{ ComplexMethod(s, o, name, lparam, superClassOpt, b) }
 
 block:
 
