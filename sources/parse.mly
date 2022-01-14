@@ -114,11 +114,11 @@ classElement:
 block:
 
 	// Instructions block
-	| l = delimited(LBRACE, list(instruction), RBRACE)							{ BlocType(l) }
+	| l = delimited(LBRACE, list(instruction), RBRACE)							{ Block(l) }
 
-	// ???
+	// Local variables in Instructions block
 	| LBRACE var = separated_nonempty_list(COMMA, methodParameters) IS
-		li = nonempty_list(instruction) RBRACE									{ }
+		li = nonempty_list(instruction) RBRACE									{ BlockVar(var, li) }
 
 expression:
 
