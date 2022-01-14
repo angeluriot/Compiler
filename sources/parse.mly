@@ -38,9 +38,9 @@
 %token	COMMA
 %token	DOT
 %token	NEW
-%token  THIS
-%token  SUPER
-%token  RESULT
+%token	THIS
+%token	SUPER
+%token	RESULT
 
 // Instruction tokens
 %token	RETURN
@@ -60,13 +60,13 @@
 
 // Main rule
 %start	<Ast.prog>	program
-%type   <Ast.decl> declaration
-%type   <Ast.constrParam> constructorParameters
-%type   <Ast.methodParam> methodParameters
-%type   <Ast.classElem> classElement
-%type   <Ast.blockType> block
-%type   <Ast.expr> expression
-%type   <Ast.instr> instruction
+%type	<Ast.decl> declaration
+%type	<Ast.constrParam> constructorParameters
+%type	<Ast.methodParam> methodParameters
+%type	<Ast.classElem> classElement
+%type	<Ast.blockType> block
+%type	<Ast.expr> expression
+%type	<Ast.instr> instruction
 %%
 
 program:
@@ -133,20 +133,20 @@ expression:
 	// Identifier
 	| x = ID																	{ Id x }
 
-    // result
-    | RESULT                                                                    { Result }
+	// result
+	| RESULT																	{ Result }
 
-    // this
-    | THIS                                                                      { This }
+	// this
+	| THIS																		{ This }
 
-    // super
-    | SUPER                                                                     { Super }
+	// super
+	| SUPER																		{ Super }
 
 	// Integer constant
 	| v = CSTE																	{ Cste v }
 
 	// String
-	| s = STRING                                    							{ String s }
+	| s = STRING																{ String s }
 
 	// Expression in parentheses
 	| e = delimited(LPAREN, expression, RPAREN)									{ e }

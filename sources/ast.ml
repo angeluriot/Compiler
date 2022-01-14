@@ -4,9 +4,9 @@ type opComp =
 
 type expr =
 	Id of string
-    | Result
-    | This
-    | Super
+	| Result
+	| This
+	| Super
 	| Cste of int
 	| String of string
 	| Cast of string * expr

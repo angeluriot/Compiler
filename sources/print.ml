@@ -33,9 +33,9 @@ let rec printExpr e =
 	in
 	match e with
 	| Id			s				-> Printf.printf "[token: id: %s]" s
-	| Result                        -> Printf.printf "[token: result]"
-	| This                          -> Printf.printf "[token: this]"
-	| Super                         -> Printf.printf "[token: super]"
+	| Result						-> Printf.printf "[token: result]"
+	| This							-> Printf.printf "[token: this]"
+	| Super							-> Printf.printf "[token: super]"
 	| Cste			e				-> Printf.printf "[token: cste: %i]" e
 	| String 		s				-> Printf.printf "[[token: double-quote] [token: string: %s] [token: double-quote]]" s
 	| Cast			(classname, e) 	-> Printf.printf "[[token: lparen] [token: classname: %s] " classname;
@@ -121,14 +121,14 @@ let rec printInstr i =
 (*
 	Affiche un bloc potentiellement vide d'instructions
 *)
-let printBlocType b = 
-    Printf.printf "[[token: lbrace]\n";
-    match b with
-    | Block li -> List.iter (fun i -> printInstr i) li
+let printBlocType b =
+	Printf.printf "[[token: lbrace]\n";
+	match b with
+	| Block li -> List.iter (fun i -> printInstr i) li
 	| BlockVar (methodParams, li) ->
-        List.iter (fun p -> printMethodParam p) methodParams;
-        Printf.printf " [token: is] ";
-        List.iter (fun i -> printInstr i) li;
+		List.iter (fun p -> printMethodParam p) methodParams;
+		Printf.printf " [token: is] ";
+		List.iter (fun i -> printInstr i) li;
 	Printf.printf "[token: rbrace]]\n"
 ;;
 
