@@ -11,7 +11,7 @@ GENERATED  = lex.ml parse.ml parse.mli parse.automaton parse.conflicts
 all: copy $(GEN_FOLDER)/parse.mli $(addprefix $(GEN_FOLDER)/, $(SOURCES))
 	cd $(GEN_FOLDER) ; ocamlc -c ast.ml
 	cd $(GEN_FOLDER) ; ocamlc $(INTERFACES)
-	cd $(GEN_FOLDER) ; ocamlc -o tp $(SOURCES)
+	cd $(GEN_FOLDER) ; ocamlc -o compiler $(SOURCES)
 
 testLex: copy $(GEN_FOLDER)/parse.mli $(GEN_FOLDER)/lex.ml $(GEN_FOLDER)/testLex.ml $(GEN_FOLDER)/utils.ml
 	cd $(GEN_FOLDER) ; ocamlc -c ast.ml
