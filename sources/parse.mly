@@ -72,8 +72,7 @@
 program:
 
 	// Program
-	| ld = list(declaration)
-		li = delimited(LBRACE, list(instruction), RBRACE) EOF					{ { classes = ld; instrs = li } }
+	| ld = list(declaration) b = block EOF									{ { classes = ld; block = b } }
 
 declaration:
 
@@ -88,37 +87,37 @@ constructorParameters:
 
 	// Constructor parameters
 	| o = boption(VAR) param = separated_nonempty_list(COMMA, ID)
-		COLON className = CLASSNAME												{ { var = o; param = param; classname = className } }
+		COLON className = CLASSNAME									{ { var = o; param = param; classname = className } }
 
 methodParameters:
 
 	// Method parameters
-	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME	{ { param = param; classname = className } }
+	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME				{ { param = param; classname = className } }
 
 classElement:
 
 	// Fields
-	| VAR s = boption(STATIC) name = ID COLON
-		className = CLASSNAME											{ Field(s, name, className) }
+	| VAR s = boption(STATIC) params = separated_nonempty_list(COMMA, ID) COLON
+		className = CLASSNAME										{ Field(s, params, className) }
 
 	// Constructors
 	| DEF className = CLASSNAME
-		lparam = delimited(LPAREN, separated_list(COMMA,
-		constructorParameters), RPAREN)
-		superClassOpt = option(COLON superClass = CLASSNAME { superClass })
-		IS b = block															{ Constr(className, lparam, superClassOpt, b) }
+		lparam = delimited(LPAREN, separated_list(COMMA, constructorParameters), RPAREN)
+		superClassOpt = option(COLON superClassName = CLASSNAME 
+		superClassParams = delimited(LPAREN, separated_nonempty_list(COMMA, expression) , RPAREN)
+		{ superClassName, superClassParams }) IS b = block						{ Constr(className, lparam, superClassOpt, b) }
 
 	// Simple Methods
 	| DEF s = boption(STATIC) o = boption(OVERRIDE) name = ID
 		lparam = delimited(LPAREN, separated_list(COMMA,
 		constructorParameters), RPAREN) COLON
-		className = CLASSNAME ASSIGN e = expression								{ SimpleMethod(s, o, name, lparam, className, e) }
+		className = CLASSNAME ASSIGN e = expression							{ SimpleMethod(s, o, name, lparam, className, e) }
 
 	// Complex Methods
 	| DEF s = boption(STATIC) o = boption(OVERRIDE) name = ID
 		lparam = delimited(LPAREN, separated_list(COMMA,
 		constructorParameters), RPAREN) superClassOpt = 
-		option(COLON superClass = CLASSNAME { superClass }) IS b = block		{ ComplexMethod(s, o, name, lparam, superClassOpt, b) }
+		option(COLON superClass = CLASSNAME { superClass }) IS b = block				{ ComplexMethod(s, o, name, lparam, superClassOpt, b) }
 
 block:
 
@@ -127,74 +126,74 @@ block:
 
 	// Local variables in Instructions block
 	| LBRACE var = separated_nonempty_list(COMMA, methodParameters) IS
-		li = nonempty_list(instruction) RBRACE									{ BlockVar(var, li) }
+		li = nonempty_list(instruction) RBRACE								{ BlockVar(var, li) }
 
 expression:
 
 	// Identifier
-	| x = ID																	{ Id x }
+	| x = ID												{ Id x }
 
 	// result
-	| RESULT																	{ Result }
+	| RESULT												{ Result }
 
 	// this
-	| THIS																		{ This }
+	| THIS													{ This }
 
 	// super
-	| SUPER																		{ Super }
+	| SUPER													{ Super }
 
 	// Integer constant
-	| v = CSTE																	{ Cste v }
+	| v = CSTE												{ Cste v }
 
 	// String
-	| s = STRING																{ String s }
+	| s = STRING												{ String s }
 
 	// Expression in parentheses
-	| e = delimited(LPAREN, expression, RPAREN)									{ e }
+	| e = delimited(LPAREN, expression, RPAREN)								{ e }
 
 	// Cast
 	| LPAREN x = CLASSNAME e = expression RPAREN								{ Cast(x, e) }
 
 	// Instantiation
 	| NEW x = CLASSNAME lparam = delimited(LPAREN,
-		separated_list(COMMA, expression), RPAREN)								{ Instantiation(x, lparam) }
+		separated_list(COMMA, expression), RPAREN)							{ Instantiation(x, lparam) }
 
 	// Field access
-	| e = expression DOT x = ID													{ FieldAccess(e, x) }
+	| e = expression DOT x = ID										{ FieldAccess(e, x) }
 
 	// Field access
-	| c = CLASSNAME DOT x = ID													{ StaticFieldAccess(c, x) }
+	| c = CLASSNAME DOT x = ID										{ StaticFieldAccess(c, x) }
 
 	// Method call
 	| e = expression DOT x = ID lparam = delimited(LPAREN,
-		separated_list(COMMA, expression), RPAREN)								{ MethodCall(e, x, lparam) }
+		separated_list(COMMA, expression), RPAREN)							{ MethodCall(e, x, lparam) }
 
 	// Method call
 	| c = CLASSNAME DOT x = ID lparam = delimited(LPAREN,
-		separated_list(COMMA, expression), RPAREN)								{ StaticMethodCall(c, x, lparam) }
+		separated_list(COMMA, expression), RPAREN)							{ StaticMethodCall(c, x, lparam) }
 
 	// Operator expressions
-	| l = expression op = RELOP r = expression									{ Comp(op, l, r) }
-	| l = expression PLUS r = expression										{ Plus(l, r) }
-	| l = expression MINUS r = expression										{ Minus(l, r) }
-	| l = expression TIMES r = expression										{ Times(l, r) }
-	| l = expression DIV r = expression											{ Div(l, r) }
-	| l = expression CONCAT r = expression										{ Concat(l, r) }
-	| PLUS e = expression %prec UNIT											{ e }
-	| MINUS e = expression %prec UNIT											{ UMinus e }
+	| l = expression op = RELOP r = expression								{ Comp(op, l, r) }
+	| l = expression PLUS r = expression									{ Plus(l, r) }
+	| l = expression MINUS r = expression									{ Minus(l, r) }
+	| l = expression TIMES r = expression									{ Times(l, r) }
+	| l = expression DIV r = expression									{ Div(l, r) }
+	| l = expression CONCAT r = expression									{ Concat(l, r) }
+	| PLUS e = expression %prec UNIT									{ e }
+	| MINUS e = expression %prec UNIT									{ UMinus e }
 
 instruction:
 
 	// Expression with a semicolon
-	| e = expression SEMICOLON													{ Expr e }
+	| e = expression SEMICOLON										{ Expr e }
 
 	// Return whit a semicolon
-	| RETURN SEMICOLON															{ Return }
+	| RETURN SEMICOLON											{ Return }
 
 	// Assignment
 	| l = expression ASSIGN r = expression SEMICOLON							{ Assignment(l, r) }
 
 	// If then else
-	| IF i = expression THEN t = instruction ELSE e = instruction				{ Ite(i, t, e) }
+	| IF i = expression THEN t = instruction ELSE e = instruction						{ Ite(i, t, e) }
 
-	| b = block 																{ BlockInstr(b) }
+	| b = block 												{ BlockInstr(b) }
