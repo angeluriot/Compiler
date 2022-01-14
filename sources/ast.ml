@@ -50,8 +50,8 @@ blockType =
 ;;
 
 type classElem =
-	Field of bool * string * string
-	| Constr of string * constrParam list * string option * blockType
+	Field of bool * string list * string
+	| Constr of string * constrParam list * ((string * expr list) option) * blockType
 	| SimpleMethod of bool * bool * string * constrParam list * string * expr
 	| ComplexMethod of bool * bool * string * constrParam list * string option * blockType
 ;;
@@ -66,7 +66,7 @@ type decl = {
 
 type prog = {
 	classes: decl list;
-	instrs: instr list;
+	block: blockType;
 }
 ;;
 

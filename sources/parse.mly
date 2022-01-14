@@ -72,8 +72,7 @@
 program:
 
 	// Program
-	| ld = list(declaration)
-		li = delimited(LBRACE, list(instruction), RBRACE) EOF					{ { classes = ld; instrs = li } }
+	| ld = list(declaration) b = block EOF										{ { classes = ld; block = b } }
 
 declaration:
 
@@ -98,15 +97,15 @@ methodParameters:
 classElement:
 
 	// Fields
-	| VAR s = boption(STATIC) name = ID COLON
-		className = CLASSNAME											{ Field(s, name, className) }
+	| VAR s = boption(STATIC) params = separated_nonempty_list(COMMA, ID) COLON
+		className = CLASSNAME													{ Field(s, params, className) }
 
 	// Constructors
 	| DEF className = CLASSNAME
-		lparam = delimited(LPAREN, separated_list(COMMA,
-		constructorParameters), RPAREN)
-		superClassOpt = option(COLON superClass = CLASSNAME { superClass })
-		IS b = block															{ Constr(className, lparam, superClassOpt, b) }
+		lparam = delimited(LPAREN, separated_list(COMMA, constructorParameters), RPAREN)
+		superClassOpt = option(COLON superClassName = CLASSNAME 
+		superClassParams = delimited(LPAREN, separated_nonempty_list(COMMA, expression) , RPAREN)
+		{ superClassName, superClassParams }) IS b = block						{ Constr(className, lparam, superClassOpt, b) }
 
 	// Simple Methods
 	| DEF s = boption(STATIC) o = boption(OVERRIDE) name = ID
