@@ -1,5 +1,16 @@
 open Ast
 
+let rec is_this_or_super_in_block p =
+	match p.block with
+		| Block(l) -> (let rec is_this_or_super_in_block_sub l = match l with
+			| [] -> false
+			| x::s -> is_this_or_super_in_block_sub s || (let rec instr_this_or_super l2 = match l2 with
+				| Return | BlockInstr -> false	
+				| Assignment ->
+				| Ite -> ))
+			in is_this_or_super_in_block_sub l
+		| BlockVar(ml, l) ->
+
 (* verifie si l'expression e ne reference bien que des variables qui figurent
  * dans la liste de variables lvars.
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon
