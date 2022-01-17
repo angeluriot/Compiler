@@ -70,12 +70,12 @@ let vc ld e =
 	vc_expr e allVars
 
 	
-let integerStringCheck ld b = {
+let rec integerStringCheck ld b = {
 	match ld with 
 	| [] -> b;
-	| ld.superClassOpt (match e with 
-											| None -> b;
-											| Some s -> b && s != "Integer" && s != "String" ;)
+	| c :: s ->  integerStringCheck s (match c.superClassOpt with 
+					| None -> b;
+					| Some a -> b && a != "Integer" && a != "String" ;)
 }
 
 
@@ -83,8 +83,8 @@ let rec classTableau ld t = {
 	match ld with 
 	| [] -> t;
 	| c :: s -> classTableau s (match c.superClassOpt with 
-															| None -> (c.classname, "") :: t
-															|	Some a ->(c.classname, c.superClassOpt) :: t
+				| None -> (c.classname, "") :: t;
+				| Some a ->(c.classname, c.superClassOpt) :: t;)
 															
 }
 
