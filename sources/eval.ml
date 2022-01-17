@@ -1,5 +1,7 @@
 open Ast
 
+
+
 (* verifie si l'expression e ne reference bien que des variables qui figurent
  * dans la liste de variables lvars.
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon
@@ -69,7 +71,7 @@ let vc ld e =
 	 *)
 	vc_expr e allVars
 
-let eval ld e =
+let eval p =
 	(* evalDecl: prend une liste de declarations et renvoie une liste
 	 * (variable, valeur) qui associe à chaque variable le résultat de
 	 * l'evaluation de l'expression en partie droite de la déclaration.
@@ -80,6 +82,8 @@ let eval ld e =
 	 * On aurait pu de nouveau utiliser List.fold_left. On montre ici uen
 	 * version avec une fonction récursive qui parcourt la liste à la main.
 	 *)
+
+	 
 	let rec evalDecl ld env =
 		match ld with
 			(* On a traité toutes les déclarations => on renvoie l'environnement *)
