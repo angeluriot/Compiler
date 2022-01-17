@@ -39,7 +39,10 @@ let parse_with_error lexbuf file_in chan =
 		 * interprétation, ni la partie compilation ne sera lancée et on se
 		 * retrouvera directement dans le traite-exception ci-dessous.
 		 *)
-		Eval.vc p;
+		(* Eval.vc p;*)
+		let classes, ok = Ast.vc_defined_classes p in
+		Printf.printf "Ok : %b\n" ok;
+		List.iter (fun x -> Printf.printf "%s\n" x) classes
 
 		(* partie interprete: on procede à l'évaluation des déclarations ainsi
 		 * qu'à celle de l'expression entre le begin et le end

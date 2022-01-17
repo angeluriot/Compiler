@@ -87,12 +87,12 @@ constructorParameters:
 
 	// Constructor parameters
 	| o = boption(VAR) param = separated_nonempty_list(COMMA, ID)
-		COLON className = CLASSNAME												{ { var = o; param = param; classname = className } }
+		COLON className = CLASSNAME												{ { var = o; param = param; classname_constr_param = className } }
 
 methodParameters:
 
 	// Method parameters
-	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME	{ { param = param; classname = className } }
+	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME	{ { param = param; classname_method_param = className } }
 
 classElement:
 

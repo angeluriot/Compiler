@@ -1,6 +1,55 @@
 open Ast
 
-
+let vc_defined_classes p =
+    let rec ok_expr e env = match e with
+        | Cast (s, _) -> List.mem s env
+        | Instantiation (s, _) -> List.mem s env
+        | StaticFieldAccess (s, _) -> List.mem s env
+        | StaticMethodCall (s, _, _) -> List.mem s env
+        | _ -> true
+    in
+    let ok_constr_params lparam env =
+        List.for_all (fun param -> List.mem param.classname_constr_param env) lparam
+    in
+    let rec ok_instr i env = match i with
+        | Expr e -> ok_expr e env
+        | Return -> true
+        | Assignment(lhs, rhs) -> ok_expr lhs env && ok_expr rhs env
+        | Ite(i, t, e) -> ok_expr i env && ok_instr t env && ok_instr e env
+        | BlockInstr b -> ok_block b env
+    and ok_block block env = match block with
+        | Block li -> List.for_all (fun i -> ok_instr i env) li
+        | BlockVar (lparam, li) -> (List.for_all (fun param -> List.mem param.classname_method_param env) lparam) && List.for_all (fun i -> ok_instr i env) li
+    in
+    let ok_superclass sc env = match sc with
+        | None -> true
+        | Some s -> List.mem s env
+    in
+    let ok_superclass_constructor sc env = match sc with
+        | None -> true
+        | Some (s, lexpr) -> List.mem s env && List.for_all (fun e -> ok_expr e env) lexpr
+    in
+    let ok_classelem env ce = match ce with
+        | Field (_, _, s) -> List.mem s env
+        | Constr(classname, lparam, superClassOpt, b) ->
+            List.mem classname env && ok_constr_params lparam env && ok_superclass_constructor superClassOpt env && ok_block b env
+        | SimpleMethod(_, _, name, lparam, classname, e) ->
+            List.mem name env && ok_constr_params lparam env && List.mem classname env && ok_expr e env
+        | ComplexMethod(_, _, name, lparam, superClassOpt, b) ->
+            List.mem name env && ok_constr_params lparam env && ok_superclass superClassOpt env && ok_block b env
+    in
+	let rec ok_classes classes env res = match classes with
+        | [] -> env, res
+        | c :: s -> ok_classes s (
+            if List.mem c.classname env then env else c.classname::env
+        ) (
+            (List.mem c.classname env) && (ok_constr_params c.lparam env) && (ok_superclass c.superClassOpt env) && List.for_all (ok_classelem env) c.ce
+        )
+	in
+    let env_classes, res_classes = ok_classes (p.classes) (["Integer"; "String"]) true
+    in
+    env_classes, res_classes && (ok_block p.block env_classes)
+;;
 
 (* verifie si l'expression e ne reference bien que des variables qui figurent
  * dans la liste de variables lvars.

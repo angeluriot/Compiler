@@ -27,13 +27,13 @@ type expr =
 type constrParam = {
 	var: bool;
 	param: string list;
-	classname: string;
+	classname_constr_param: string;
 }
 ;;
 
 type methodParam = {
 	param: string list;
-	classname: string;
+	classname_method_param: string;
 }
 ;;
 

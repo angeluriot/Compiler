@@ -88,7 +88,7 @@ let printConstrParam c =
 	| a :: b	-> 
 		Printf.printf "%s " a;
 		List.iter (fun s -> Printf.printf ", %s" s) b;
-		Printf.printf "] : [token: classname: %s]]" c.classname
+		Printf.printf "] : [token: classname: %s]]" c.classname_constr_param
 ;;
 
 (*
@@ -103,7 +103,7 @@ let printMethodParam m =
 	| a :: b ->
 		Printf.printf "%s " a;
 		List.iter (fun s -> Printf.printf ", %s" s) b;
-		Printf.printf "] : [token: classname: %s]]" m.classname
+		Printf.printf "] : [token: classname: %s]]" m.classname_method_param
 ;;
 
 let printBlocType b = ()
