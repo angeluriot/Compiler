@@ -61,7 +61,7 @@ let compile ld e chan =
 				output_string chan (string_of_int adr);
 				output_string chan "\n";
 				with Not_found ->
-				(* ne peut arriver si les vérifications contextuelles sont faites *)
+				(* ne peut arriver si les vérifications  tuelles sont faites *)
 				failwith "unexpected situation in compileExpr"
 			end
 		| Cste v ->
