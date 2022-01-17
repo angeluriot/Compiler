@@ -69,6 +69,14 @@ let vc ld e =
 	 *)
 	vc_expr e allVars
 
+let integerStringCheck ld b = {
+	match ld with 
+	| [] -> b;
+	| ld.superClassOpt (match e with 
+											| None -> b;
+											| Some s -> b && s != "Integer" && s != "String" ;
+}
+
 let eval ld e =
 	(* evalDecl: prend une liste de declarations et renvoie une liste
 	 * (variable, valeur) qui associe à chaque variable le résultat de
