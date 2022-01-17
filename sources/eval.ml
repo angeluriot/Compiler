@@ -69,7 +69,7 @@ let vc ld e =
 	 *)
 	vc_expr e allVars
 
-let eval ld e =
+let eval ld p =
 	(* evalDecl: prend une liste de declarations et renvoie une liste
 	 * (variable, valeur) qui associe à chaque variable le résultat de
 	 * l'evaluation de l'expression en partie droite de la déclaration.
