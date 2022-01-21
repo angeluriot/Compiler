@@ -1,5 +1,11 @@
 open Ast
 
+let rec does_method_have_a_result ce =
+	match ce with
+	| Field | Constr -> ()
+	| SimpleMethod (b1, b2, s1, cl, s2, e) -> does_expr_have_a_result e
+	| ComplexMethod (b1, b2, s1, cl, s2, bt) -> does_blocktype_have_a_result bt
+
 let rec is_this_or_super_in_block p =
 	let is_expr_this_or_super e =
 		match e with
