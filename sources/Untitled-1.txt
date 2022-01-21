@@ -1,9 +1,13 @@
 Gaétan - vérifier que toute classe est définie
-vérifier que le graphe d'héritage est sans circuit
+    -> OK
+Gaétan - vérifier que le graphe d'héritage est sans circuit
+    -> OK
 Thomas - vérifier que les classes string et integer sont sans sous-classes
+    -> OK
 Arthur - vérifier que this/super utilisé dans méthodes de classes
+    -> OK
 Angel - nom constructeur = nom classe
-
+    -> OK
 
 analyse de portée : quelle variable déclarée / visible o`u
 vérififer que les identificateurs ont été déclarés

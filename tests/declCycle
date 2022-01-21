@@ -1,0 +1,18 @@
+/*
+Eval.vc_inheritance_cycle
+*/
+class A () extends C is {
+   def A() is {}
+}
+
+class B () extends A is {
+   def B() is {}
+}
+
+class C () extends B is {
+   def C() is {}
+}
+
+{ 
+
+}

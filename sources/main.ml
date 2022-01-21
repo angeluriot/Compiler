@@ -33,7 +33,11 @@ let parse_with_error lexbuf file_in chan =
 		 * utilisee pour le projet.
 		 *)
 
-		Print.printProg p; (* impression non ambigue de tout l'AST *)
+		(*
+			Print.printProg p; 
+		 *)
+		
+		(* impression non ambigue de tout l'AST *)
 
 		(* Verifications Contextuelles: incluses dans le fichier eval.ml
 		 * Lance l'exception VC_Error en cas d'erreur. En ce cas ni la partie
@@ -73,7 +77,7 @@ let parse_with_error lexbuf file_in chan =
 	| MISC_Error msg -> (* pour l'instant juste erreur lexicale *)
 		Printf.fprintf stderr "Error: %s\n" msg;
 		exit (-1)
-(*
+
 let _ =
 	let argc = Array.length Sys.argv in
 	if argc = 1 then
@@ -93,5 +97,3 @@ let _ =
 			close_in chan_in;
 			close_out chan_out
 		end
-
-		*)

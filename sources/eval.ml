@@ -1,61 +1,124 @@
 open Ast
 
+(* todo changer les true false en error *)
 let vc_defined_classes p =
-    let rec ok_expr e env = match e with
-        | Cast (s, _) -> List.mem s env
-        | Instantiation (s, _) -> List.mem s env
-        | StaticFieldAccess (s, _) -> List.mem s env
-        | StaticMethodCall (s, _, _) -> List.mem s env
-        | _ -> true
-    in
-    let ok_constr_params lparam env =
-        List.for_all (fun param -> List.mem param.classname_constr_param env) lparam
-    in
-    let rec ok_instr i env = match i with
-        | Expr e -> ok_expr e env
-        | Return -> true
-        | Assignment(lhs, rhs) -> ok_expr lhs env && ok_expr rhs env
-        | Ite(i, t, e) -> ok_expr i env && ok_instr t env && ok_instr e env
-        | BlockInstr b -> ok_block b env
-    and ok_block block env = match block with
-        | Block li -> List.for_all (fun i -> ok_instr i env) li
-        | BlockVar (lparam, li) -> (List.for_all (fun param -> List.mem param.classname_method_param env) lparam) && List.for_all (fun i -> ok_instr i env) li
-    in
-    let ok_superclass sc env = match sc with
-        | None -> true
-        | Some s -> List.mem s env
-    in
-    let ok_superclass_constructor sc env = match sc with
-        | None -> true
-        | Some (s, lexpr) -> List.mem s env && List.for_all (fun e -> ok_expr e env) lexpr
-    in
-    let ok_classelem env ce = match ce with
-        | Field (_, _, s) -> List.mem s env
-        | Constr(classname, lparam, superClassOpt, b) ->
-            List.mem classname env && ok_constr_params lparam env && ok_superclass_constructor superClassOpt env && ok_block b env
-        | SimpleMethod(_, _, name, lparam, classname, e) ->
-            List.mem name env && ok_constr_params lparam env && List.mem classname env && ok_expr e env
-        | ComplexMethod(_, _, name, lparam, superClassOpt, b) ->
-            List.mem name env && ok_constr_params lparam env && ok_superclass superClassOpt env && ok_block b env
-    in
-	let rec ok_classes classes env res = match classes with
-        | [] -> env, res
-        | c :: s -> ok_classes s (
-            if List.mem c.classname env then env else c.classname::env
-        ) (
-            (List.mem c.classname env) && (ok_constr_params c.lparam env) && (ok_superclass c.superClassOpt env) && List.for_all (ok_classelem env) c.ce
-        )
+	let rec ok_expr e env = match e with
+		| Cast (s, _) -> if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s))
+		| Instantiation (s, _) -> if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s))
+		| StaticFieldAccess (s, _) -> if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s))
+		| StaticMethodCall (s, _, _) -> if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s))
+		| _ -> ()
 	in
-    let env_classes, res_classes = ok_classes (p.classes) (["Integer"; "String"]) true
-    in
-    env_classes, res_classes && (ok_block p.block env_classes)
+	let ok_constr_params lparam env =
+		List.iter (fun param -> if not (List.mem param.classname_constr_param env) then raise (VC_Error ("Classe non déclarée : " ^ param.classname_constr_param))) lparam
+	in
+	let rec ok_instr i env = match i with
+		| Expr e -> ok_expr e env
+		| Return -> ()
+		| Assignment(lhs, rhs) -> ok_expr lhs env; ok_expr rhs env
+		| Ite(i, t, e) -> ok_expr i env; ok_instr t env; ok_instr e env
+		| BlockInstr b -> ok_block b env
+	and ok_block block env = match block with
+		| Block li -> List.iter (fun i -> ok_instr i env) li
+		| BlockVar (lparam, li) ->
+			List.iter (
+			fun param -> if not (List.mem param.classname_method_param env) then raise (VC_Error ("Classe non déclarée : " ^ param.classname_method_param))
+		) lparam;
+			List.iter (fun i -> ok_instr i env) li
+	in
+	let ok_superclass sc env = match sc with
+		| None -> ()
+		| Some s -> if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s))
+	in
+	let ok_superclass_constructor sc env = match sc with
+		| None -> ()
+		| Some (s, lexpr) ->
+			if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s));
+			List.iter (fun e -> ok_expr e env) lexpr
+	in
+	let ok_classelem env ce = match ce with
+		| Field (_, _, s) -> if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s))		
+		| Constr(classname, lparam, superClassOpt, b) ->
+			if not (List.mem classname env) then raise (VC_Error ("Classe non déclarée : " ^ classname));
+			ok_constr_params lparam env;
+			ok_superclass_constructor superClassOpt env;
+			ok_block b env
+		| SimpleMethod(_, _, _, lparam, classname, e) ->
+			ok_constr_params lparam env;
+			if not (List.mem classname env) then raise (VC_Error ("Classe non déclarée : " ^ classname));
+			ok_expr e env
+		| ComplexMethod(_, _, _, lparam, superClassOpt, b) ->
+			ok_constr_params lparam env;
+			ok_superclass superClassOpt env;
+			ok_block b env
+	in
+	let rec ok_classes classes env = match classes with
+		| [] -> env
+		| c :: s -> (
+			let env_s = if List.mem c.classname env then env else c.classname::env
+			in
+			ok_constr_params c.lparam env_s;
+			ok_superclass c.superClassOpt env_s;
+			List.iter (ok_classelem env_s) c.ce;
+			ok_classes s env_s)
+	in
+	let env_classes = ok_classes p.classes (["Integer"; "String"])
+	in
+	ok_block p.block env_classes;
+	env_classes
 ;;
+
+let vc_redeclaration_class ld =
+	List.fold_left (
+		fun acc d ->
+			if List.mem d.classname acc
+			then raise (VC_Error ("Redéfinition de " ^ d.classname))
+			else d.classname :: acc
+	) (["Integer"; "String"]) ld;
+	()
+;;
+
+let vc_available_methods_fields p = ()
+;;
+
+let vc_inheritance_cycle ld =
+	let get_class_inheritance_info ld =
+		let extract_classname d =
+			match d.superClassOpt with
+			| None -> (d.classname, "")
+			| Some s -> (d.classname, s)
+		in
+		List.fold_left (fun acc x -> extract_classname x :: acc) [] ld
+	in
+	let find_superclass c l =
+		List.fold_left (
+			fun acc x ->
+				let (c2, _) = x
+				in
+				if c = c2 then x else acc 
+		) ("", "") l
+	in
+	let rec check_cycle c l seen =
+		let (classname, superclassname) = c
+		in
+		if superclassname = "" then ()
+		else
+			if List.mem classname seen
+			then raise (VC_Error ("Cycle detected with " ^ classname))
+			else check_cycle (find_superclass superclassname l) l (classname::seen)
+	in
+	let classes = get_class_inheritance_info ld
+	in
+	List.iter (fun c -> check_cycle c classes []) classes
+;;
+
 
 (* verifie si l'expression e ne reference bien que des variables qui figurent
  * dans la liste de variables lvars.
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon
  * retourne () en résultat.
  *)
+
  (*
  
 let vc_expr e lvars =
@@ -84,7 +147,15 @@ let vc_expr e lvars =
  * reporte le fait qu'une variable ne soit pas déclarée indépendamment du fait
  * qu'on ait besoin ou pas de sa valeur à l'exécution.
  *)
-let vc p = 0
+let vc p =
+	vc_redeclaration_class p.classes;
+	vc_inheritance_cycle p.classes;
+	let classnames = vc_defined_classes p
+	in
+	()
+
+;;
+
 	(* Construit progressivement grace a List.fold_left la liste des
 	 * variables deja rencontrées tout en procédant aux vérifications.
 	 * On peut aussi faire cela avec une fonction récursive si on ne veut pas
@@ -124,7 +195,7 @@ let vc p = 0
 	 *)
 	vc_expr e allVars
 	 *)
-	 
+
 let eval p = 0
 	(* evalDecl: prend une liste de declarations et renvoie une liste
 	 * (variable, valeur) qui associe à chaque variable le résultat de
