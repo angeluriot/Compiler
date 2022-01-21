@@ -70,23 +70,31 @@ let vc ld e =
 	vc_expr e allVars
 
 	
-let rec integerStringCheck ld b = {
+let rec integerStringCheck ld b = 
 	match ld with 
 	| [] -> b;
 	| c :: s ->  integerStringCheck s (match c.superClassOpt with 
 					| None -> b;
 					| Some a -> b && a != "Integer" && a != "String" ;)
-}
 
 
-let rec classTableau ld t = {
+
+let rec classTableau ld t = 
 	match ld with 
 	| [] -> t;
 	| c :: s -> classTableau s (match c.superClassOpt with 
 				| None -> (c.classname, "") :: t;
 				| Some a ->(c.classname, c.superClassOpt) :: t;)
 															
-}
+let checkOneConstructor d = 
+	let rec cpt lce acc =
+		match lce with 
+			| [] -> 0
+			| e :: s -> cpt s (acc + (match e with 
+						| Constr (_,_,_,_)-> 1
+						| _ -> 0)) 
+	in
+	if cpt d.ce 0 = 1 then () else raise (VC_Error ("La classe "^d.classname^" n'a pas qu'un seul constructeur"))															
 
 let eval ld e =
 	(* evalDecl: prend une liste de declarations et renvoie une liste
