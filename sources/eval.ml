@@ -1,5 +1,18 @@
 open Ast
 
+(*let constr_name_equals_class_name p =
+	let rec check_class c l =
+		let rec check_element c e =
+			match e with
+			| Constr(name, _, _, _) -> if name = c then return true else false
+			| _ -> false
+		in
+		match l with
+		| _::s -> check_element c s
+		| [] -> false
+	in
+	let*)
+
 (* verifie si l'expression e ne reference bien que des variables qui figurent
  * dans la liste de variables lvars.
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon
