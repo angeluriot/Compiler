@@ -1,5 +1,6 @@
 open Ast
 open Lexing
+open Eval
 
 (* lexbuf: correspond au buffer d'entrée associé au programme qu'on traite
  * file_in: descripteur de fichier pour ce programme
@@ -39,11 +40,13 @@ let parse_with_error lexbuf file_in chan =
 		 * interprétation, ni la partie compilation ne sera lancée et on se
 		 * retrouvera directement dans le traite-exception ci-dessous.
 		 *)
-		(* Eval.vc p;*)
+		Eval.vc p;
+(*
+
 		let classes, ok = Ast.vc_defined_classes p in
 		Printf.printf "Ok : %b\n" ok;
 		List.iter (fun x -> Printf.printf "%s\n" x) classes
-
+*)
 		(* partie interprete: on procede à l'évaluation des déclarations ainsi
 		 * qu'à celle de l'expression entre le begin et le end
 		 * Lance l'exception RUN_error en cas d'erreur à l'exécution
@@ -55,6 +58,8 @@ let parse_with_error lexbuf file_in chan =
 		(* partie compilation: on engendre du code pour la machine abstraite *)
 		Compile.compile ld e chan;
 		*)
+	
+	
 	with (* traite exception général ... *)
 		Parse.Error -> (* levée par l'analyseur syntaxique *)
 		Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf;
@@ -68,7 +73,7 @@ let parse_with_error lexbuf file_in chan =
 	| MISC_Error msg -> (* pour l'instant juste erreur lexicale *)
 		Printf.fprintf stderr "Error: %s\n" msg;
 		exit (-1)
-
+(*
 let _ =
 	let argc = Array.length Sys.argv in
 	if argc = 1 then
@@ -88,3 +93,5 @@ let _ =
 			close_in chan_in;
 			close_out chan_out
 		end
+
+		*)

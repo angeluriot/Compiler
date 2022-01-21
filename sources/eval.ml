@@ -56,6 +56,8 @@ let vc_defined_classes p =
  * Leve l'exception VC_Error si une variable n'a pas été déclarée, sinon
  * retourne () en résultat.
  *)
+ (*
+ 
 let vc_expr e lvars =
 	let rec vc_e e = (* fonction auxiliaire qui parcourt récursivement e *)
 		match e with
@@ -70,7 +72,7 @@ let vc_expr e lvars =
 				vc_e si; vc_e alors; vc_e sinon;
 			| Comp(op, g, d) -> vc_e g; vc_e d;
 	in vc_e e
-
+*)
 
 (* lance les vérifications contextuelles sur la liste de déclarations ainsi
  * que l'expression finale. D'après l'énoncé il s'agit ici de vérifier que
@@ -82,12 +84,14 @@ let vc_expr e lvars =
  * reporte le fait qu'une variable ne soit pas déclarée indépendamment du fait
  * qu'on ait besoin ou pas de sa valeur à l'exécution.
  *)
-let vc ld e =
+let vc p = 0
 	(* Construit progressivement grace a List.fold_left la liste des
 	 * variables deja rencontrées tout en procédant aux vérifications.
 	 * On peut aussi faire cela avec une fonction récursive si on ne veut pas
 	 * recourir à fold_left
 	 *)
+	 (*
+
 	let allVars =
 		List.fold_left (* voir la doc de fold_left pour le rôle des 3 arguments *)
 			(fun lvars decl ->
@@ -119,8 +123,9 @@ let vc ld e =
 	 * plus qu'à vérifier l'expression finale
 	 *)
 	vc_expr e allVars
-
-let eval p =
+	 *)
+	 
+let eval p = 0
 	(* evalDecl: prend une liste de declarations et renvoie une liste
 	 * (variable, valeur) qui associe à chaque variable le résultat de
 	 * l'evaluation de l'expression en partie droite de la déclaration.
@@ -132,6 +137,7 @@ let eval p =
 	 * version avec une fonction récursive qui parcourt la liste à la main.
 	 *)
 
+	 (*
 	 
 	let rec evalDecl ld env =
 		match ld with
@@ -196,4 +202,6 @@ let eval p =
 			failwith "unexpected situation in evalExpr"
 	in let final_env = evalDecl ld [] in (* traite les déclarations *)
 		evalExpr e final_env (* traite l'expression finale *)
+
+		*)
 ;;
