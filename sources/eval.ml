@@ -1,15 +1,24 @@
 open Ast
 
 let rec is_this_or_super_in_block p =
+	let is_expr_this_or_super e =
+		match e with
+			| This -> true
+			| Super -> true
+			| _ -> false
+	in
+	let rec instr_this_or_super l2 = match l2 with
+		| Return | BlockInstr -> false	
+		| Assignment (e1, e2) -> is_expr_this_or_super e1 || is_expr_this_or_super e2
+		| Ite (e, i1, i2) -> is_expr_this_or_super e 
+	in
+	let rec is_this_or_super_in_block_sub l = match l with
+		| [] -> false
+		| x::s -> is_this_or_super_in_block_sub s || instr_this_or_super x
+	in
 	match p.block with
-		| Block(l) -> (let rec is_this_or_super_in_block_sub l = match l with
-			| [] -> false
-			| x::s -> is_this_or_super_in_block_sub s || (let rec instr_this_or_super l2 = match l2 with
-				| Return | BlockInstr -> false	
-				| Assignment ->
-				| Ite -> ))
-			in is_this_or_super_in_block_sub l
-		| BlockVar(ml, l) ->
+		| Block(l) -> if is_this_or_super_in_block_sub l then raise (VC_Error ("This or Super in block"))
+		| BlockVar(ml, l) -> if is_this_or_super_in_block_sub l then raise (VC_Error ("This or Super in block"))
 
 (* verifie si l'expression e ne reference bien que des variables qui figurent
  * dans la liste de variables lvars.
