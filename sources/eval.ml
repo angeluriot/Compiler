@@ -68,6 +68,29 @@ let vc ld e =
 	 * plus qu'à vérifier l'expression finale
 	 *)
 	vc_expr e allVars
+	
+	
+let rec checkResult ce b = 
+  match ce with
+  |[] -> () 
+  |e :: s ->  ( match e with 
+      |ComplexMethod(_,_,_,_,_,blocktype) -> (match blocktype with
+          | Block(instr list) -> match instr list with
+            |instr -> (match instr with 
+                |Assignment(expr, expr2) -> (match expr with
+                    |Result -> b (*to do type*)
+                    |[] -> None)
+                |Ite(expr3,instr,instr2)-> (match expr3 with
+                    | expr -> (match expr with
+                        |Result -> b 
+                        |[] -> ())
+                    | instr -> (match instr with
+                        |Assignment(expr, expr2) -> (match expr with
+                            |Result -> b (*to do type*)
+                            |[] -> None)))
+                |BlockInstr
+              )
+            | [] -> ();
 
 	
 let rec integerStringCheck ld b = 
