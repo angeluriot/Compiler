@@ -70,29 +70,8 @@ let vc ld e =
 	vc_expr e allVars
 	
 	
-let rec checkResult ce b = 
-  match ce with
-  |[] -> () 
-  |e :: s ->  ( match e with 
-      |ComplexMethod(_,_,_,_,_,blocktype) -> (match blocktype with
-          | Block(instr list) -> match instr list with
-            |instr -> (match instr with 
-                |Assignment(expr, expr2) -> (match expr with
-                    |Result -> b (*to do type*)
-                    |[] -> None)
-                |Ite(expr3,instr,instr2)-> (match expr3 with
-                    | expr -> (match expr with
-                        |Result -> b 
-                        |[] -> ())
-                    | instr -> (match instr with
-                        |Assignment(expr, expr2) -> (match expr with
-                            |Result -> b (*to do type*)
-                            |[] -> None)))
-                |BlockInstr
-              )
-            | [] -> ();
 
-	
+(*CE QUE JAI CODE*)	
 let rec integerStringCheck ld b = 
 	match ld with 
 	| [] -> b;
@@ -101,14 +80,14 @@ let rec integerStringCheck ld b =
 					| Some a -> b && a != "Integer" && a != "String" ;)
 
 
-
+(*CE QUE JAI CODE*)
 let rec classTableau ld t = 
 	match ld with 
 	| [] -> t;
 	| c :: s -> classTableau s (match c.superClassOpt with 
 				| None -> (c.classname, "") :: t;
 				| Some a ->(c.classname, c.superClassOpt) :: t;)
-															
+(*CE QUE JAI CODE*)															
 let checkOneConstructor d = 
 	let rec cpt lce acc =
 		match lce with 
