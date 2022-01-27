@@ -44,7 +44,24 @@ let parse_with_error lexbuf file_in chan =
 		 * interprétation, ni la partie compilation ne sera lancée et on se
 		 * retrouvera directement dans le traite-exception ci-dessous.
 		 *)
-		Eval.vc p;
+
+		(*		
+		List.iter (fun (a, b) -> Printf.printf "(%s, %s)\n" a b) (Eval.get_class_inheritance_info p.classes);
+
+		let methods = Eval.get_classes_methods_list p.classes
+		in
+		List.iter (fun (classname, coef, name, lparam, returnedClass) ->
+			Printf.printf "(%s, %i, %s, %s, [" classname coef name returnedClass;
+			List.iter (fun p -> let (name, type_) = p in
+				Printf.printf "(%s, %s), " name type_
+			) lparam;
+			Printf.printf "])\n"
+		) methods
+		;
+		Eval.vc_surcharge p.classes;
+		*)
+		Eval.vc_portee p;
+		(* Eval.vc p;*)
 (*
 
 		let classes, ok = Ast.vc_defined_classes p in

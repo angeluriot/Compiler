@@ -52,8 +52,8 @@ blockType =
 type classElem =
 	Field of bool * string list * string
 	| Constr of string * constrParam list * ((string * expr list) option) * blockType
-	| SimpleMethod of bool * bool * string * constrParam list * string * expr
-	| ComplexMethod of bool * bool * string * constrParam list * string option * blockType
+	| SimpleMethod of bool * bool * string * methodParam list * string * expr
+	| ComplexMethod of bool * bool * string * methodParam list * string option * blockType
 ;;
 
 type decl = {

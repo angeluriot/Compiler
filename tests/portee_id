@@ -1,0 +1,5 @@
+{
+    /* d non déclarée
+     a,b,c: Integer is if a > b then c := 2; else d;
+    */
+}

@@ -1,6 +1,5 @@
 open Ast
 
-(* todo changer les true false en error *)
 let vc_defined_classes p =
 	let rec ok_expr e env = match e with
 		| Cast (s, _) -> if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s))
@@ -11,6 +10,9 @@ let vc_defined_classes p =
 	in
 	let ok_constr_params lparam env =
 		List.iter (fun param -> if not (List.mem param.classname_constr_param env) then raise (VC_Error ("Classe non déclarée : " ^ param.classname_constr_param))) lparam
+	in
+	let ok_method_params lparam env =
+		List.iter (fun param -> if not (List.mem param.classname_method_param env) then raise (VC_Error ("Classe non déclarée : " ^ param.classname_method_param))) lparam
 	in
 	let rec ok_instr i env = match i with
 		| Expr e -> ok_expr e env
@@ -44,11 +46,11 @@ let vc_defined_classes p =
 			ok_superclass_constructor superClassOpt env;
 			ok_block b env
 		| SimpleMethod(_, _, _, lparam, classname, e) ->
-			ok_constr_params lparam env;
+			ok_method_params lparam env;
 			if not (List.mem classname env) then raise (VC_Error ("Classe non déclarée : " ^ classname));
 			ok_expr e env
 		| ComplexMethod(_, _, _, lparam, superClassOpt, b) ->
-			ok_constr_params lparam env;
+			ok_method_params lparam env;
 			ok_superclass superClassOpt env;
 			ok_block b env
 	in
@@ -74,22 +76,23 @@ let vc_redeclaration_class ld =
 			if List.mem d.classname acc
 			then raise (VC_Error ("Redéfinition de " ^ d.classname))
 			else d.classname :: acc
-	) (["Integer"; "String"]) ld;
-	()
+	) (["Integer"; "String"]) ld
 ;;
 
 let vc_available_methods_fields p = ()
 ;;
 
-let vc_inheritance_cycle ld =
-	let get_class_inheritance_info ld =
-		let extract_classname d =
-			match d.superClassOpt with
-			| None -> (d.classname, "")
-			| Some s -> (d.classname, s)
-		in
-		List.fold_left (fun acc x -> extract_classname x :: acc) [] ld
+
+let get_class_inheritance_info ld =
+	let extract_classname d =
+		match d.superClassOpt with
+		| None -> (d.classname, "")
+		| Some s -> (d.classname, s)
 	in
+	List.fold_left (fun acc x -> extract_classname x :: acc) [] ld
+;;
+
+let vc_inheritance_cycle ld =
 	let find_superclass c l =
 		List.fold_left (
 			fun acc x ->
@@ -112,6 +115,138 @@ let vc_inheritance_cycle ld =
 	List.iter (fun c -> check_cycle c classes []) classes
 ;;
 
+let vc_portee p =
+	let contains id env = List.fold_left (fun acc (x, _) -> acc || x = id) false env
+	in
+	let ajoute_params p type_ env = env @ [(p, type_)]
+	in
+	let ajoute_constr_param_list lparam env =
+		if (lparam.var) then env else
+		List.fold_left (fun acc lp -> ajoute_params lp lparam.classname_constr_param acc) env lparam.param
+	in
+	let ajoute_method_param_list lparam env =
+		List.fold_left (fun acc lp -> ajoute_params lp lparam.classname_method_param acc) env lparam.param
+	in
+	let ajoute_method_params_list lm env =
+		List.fold_left (fun acc x -> ajoute_method_param_list x acc) env lm
+	in
+	let ajoute_constr_params_list lm env =
+		List.fold_left (fun acc x -> ajoute_constr_param_list x acc) env lm
+	in
+	let rec portee_expr e env = match e with
+		| Id x -> if contains x env then () else raise (VC_Error ("Id non déclaré : " ^ x))
+		| Cast (_, e) -> portee_expr e env
+		| Instantiation (_, le) -> List.iter (fun e -> portee_expr e env) le
+		| FieldAccess (e, _) -> portee_expr e env
+		| MethodCall (e, _, le) -> portee_expr e env; List.iter (fun e -> portee_expr e env) le
+		|	StaticMethodCall (_, _, le) -> List.iter (fun e -> portee_expr e env) le
+		| Comp (_, lhs, rhs) -> portee_expr lhs env; portee_expr rhs env
+		| Concat (lhs, rhs) -> portee_expr lhs env; portee_expr rhs env
+		| Plus (lhs, rhs) -> portee_expr lhs env; portee_expr rhs env
+		| Minus (lhs, rhs) -> portee_expr lhs env; portee_expr rhs env
+		| Times (lhs, rhs) -> portee_expr lhs env; portee_expr rhs env
+		| Div (lhs, rhs) -> portee_expr lhs env; portee_expr rhs env
+		| UMinus e -> portee_expr e env
+		| _ -> ()
+	in
+	let rec portee_instr i env = match i with
+		| Expr e -> portee_expr e env
+		| Assignment (lhs, rhs) ->
+			portee_expr lhs env;
+			portee_expr rhs env
+		| Ite (i, t, e) ->
+			portee_expr i env;
+			portee_instr t env;
+			portee_instr e env
+		| BlockInstr b -> portee_bloc b env
+		| _ -> ()
+	and
+	portee_bloc b env = match b with
+		| Block(li) -> List.iter (fun i -> portee_instr i env) li
+		| BlockVar(lm, li) -> List.iter (fun i -> portee_instr i (ajoute_method_params_list lm env)) li
+	in
+	let portee_decl d env =
+		List.iter (fun ce -> match ce with
+			| Constr (_,lparam,_,b) -> portee_bloc b (ajoute_constr_params_list lparam env)
+			| SimpleMethod (_, _, _, lparam, _, e) -> portee_expr e (ajoute_method_params_list lparam env)
+			| ComplexMethod (_, _, _, lparam, _, b) -> portee_bloc b (ajoute_method_params_list lparam env)
+			| _ -> ()
+		) d.ce
+	in
+	List.iter (fun d -> portee_decl d []) p.classes;
+	portee_bloc p.block []
+;;
+
+(*
+	génère un tableau sous la forme :
+	(ClassName, Coef, NomMethod, ListParam)
+	avec coef : 0 ni statique ni override
+				1 override
+				2 statique
+				3 les 2
+	ListParam :
+		(name, type)
+ *)
+let get_classes_methods_list ld =
+	let get_coef c1 c2 =
+		(if c1 = true then 2 else 0) + (if c2 = true then 1 else 0)
+	in
+	let generate_param p =
+		List.fold_left (fun acc x -> (x, p.classname_method_param)::acc) [] p.param
+	in
+	let generate_lparam lparam =
+		List.fold_left (fun acc p -> (generate_param p)@acc) [] lparam
+	in
+	let create_item classname coef name lparam returnedClass =
+		(classname, coef, name, lparam, returnedClass)
+	in
+	let ajoute classname ce env =
+		List.fold_left (fun acc e -> match e with
+			| Field (_, _, _) -> acc
+			| Constr (_, _, _, _) -> acc
+			| SimpleMethod (static, override, name, lparam, returnedClass, _) -> (create_item classname (get_coef static override) name (generate_lparam lparam) returnedClass)::acc
+			| ComplexMethod (static, override, name, lparam, returnedClass, _) -> (match returnedClass with
+				| None -> (create_item classname (get_coef static override) name (generate_lparam lparam) "void")::acc
+				| Some s -> (create_item classname (get_coef static override) name (generate_lparam lparam) s)::acc
+				)
+		) env ce
+	in
+	List.fold_left (fun acc d -> ajoute d.classname d.ce acc) [] ld
+;;
+
+let est_sous_classe c1 c2 env =
+	List.fold_left (fun acc (e1, e2) -> acc || (e1 = c1 && e2 = c2)) false env
+;;
+
+(*
+	La surcharge de méthodes dans une classe ou entre une classe et une super-classe n’est pas autorisée en
+	dehors des redéfinitions; elle est autorisée entre méthodes de classes non reliées par héritage. La
+	redéfinition doit respecter le profil de la méthode originelle (pas de covariance du type de retour).
+ *)
+
+let vc_surcharge ld =
+	let methods = get_classes_methods_list ld
+	in
+	let env = get_class_inheritance_info ld
+	in
+	(
+		List.iter (fun (classname1, so1, methodname1, lparam1, ret1) ->
+			List.iter (fun (classname2, so2, methodname2, lparam2, ret2) ->
+				if est_sous_classe classname1 classname2 env && methodname1 = methodname2 then (
+					(* Printf.printf "super: (%s, %s)::(%s, %s)\n" classname1 classname2 methodname1 methodname2; *)
+					if (so1 mod 2) = 1 then (
+						if not (lparam1 = lparam2 && ret1 = ret2 && (so1/2) = (so2/2)) then
+							raise (VC_Error ("Surcharge de méthode entre une classe et sa super-classe interdite : " ^ classname1 ^ "::" ^ methodname1))
+					)
+				);
+				if classname1 = classname2 && methodname1 = methodname2 then (
+					(* Printf.printf "this : (%s, %s)::(%s, %s)\n" classname1 classname2 methodname1 methodname2; *)
+					if not (lparam1 = lparam2 && ret1 = ret2 && so1 = so2) then
+						raise (VC_Error ("Surcharge interdite dans une classe : " ^ classname1 ^ "::" ^ methodname1)));
+				) methods
+		) methods
+	)
+;;
 
 (* verifie si l'expression e ne reference bien que des variables qui figurent
  * dans la liste de variables lvars.
@@ -119,160 +254,8 @@ let vc_inheritance_cycle ld =
  * retourne () en résultat.
  *)
 
- (*
- 
-let vc_expr e lvars =
-	let rec vc_e e = (* fonction auxiliaire qui parcourt récursivement e *)
-		match e with
-			Id x ->
-				if not (List.mem x lvars) then
-					raise (VC_Error ("variable non declaree: " ^ x))
-			| Cste v -> ()
-			| Plus(g, d) | Minus (g, d) | Times (g, d) | Div (g, d) ->
-				vc_e g; vc_e d;
-			| UMinus e -> vc_e e
-			| Ite (si, alors, sinon) ->
-				vc_e si; vc_e alors; vc_e sinon;
-			| Comp(op, g, d) -> vc_e g; vc_e d;
-	in vc_e e
-*)
-
-(* lance les vérifications contextuelles sur la liste de déclarations ainsi
- * que l'expression finale. D'après l'énoncé il s'agit ici de vérifier que
- * les expressions ne référencent que des variables déclarées et qu'une variable
- * n'est déclarée qu'une fois. Pour cela on va simplement construire une
- * liste des variables déjà déclarées. Ici on n'a pas besoin de connaitre la
- * valeur de ces variables, juste leur existence.
- * L'énoncé demande que cette vérification soit faite avant l'exécution et qu'on
- * reporte le fait qu'une variable ne soit pas déclarée indépendamment du fait
- * qu'on ait besoin ou pas de sa valeur à l'exécution.
- *)
 let vc p =
 	vc_redeclaration_class p.classes;
 	vc_inheritance_cycle p.classes;
-	let classnames = vc_defined_classes p
-	in
-	()
-
-;;
-
-	(* Construit progressivement grace a List.fold_left la liste des
-	 * variables deja rencontrées tout en procédant aux vérifications.
-	 * On peut aussi faire cela avec une fonction récursive si on ne veut pas
-	 * recourir à fold_left
-	 *)
-	 (*
-
-	let allVars =
-		List.fold_left (* voir la doc de fold_left pour le rôle des 3 arguments *)
-			(fun lvars decl ->
-				(* prend en paramètre l'accumulateur, ie. la liste des variables déjà
-				 * déclarées (initialement [], le 2eme argument de fold_left) et la
-				 * déclaration à traiter.
-				 *
-				 * { lhs; rhs; } est un raccourci pour { lhs = lhs; rhs = rhs }
-				 * Les noms de champ jouent le rôle de variables locales dans la
-				 * decomposition du record.
-				 *)
-				let { lhs; rhs } = decl in
-				vc_expr rhs lvars; (* verifier la partie droite de la déclaration *)
-
-				(* vérifier que lhs n'a pas dejà été déclarée *)
-				if List.mem lhs lvars then
-					raise (VC_Error ("redeclaration de la variable " ^ lhs));
-
-				(* renvoie une liste avec la nouvelle variable ajoutée à la liste des
-				 * variables connues. L'ordre des variables dans la liste n'important
-				 * pas ici, on la met en tête puisque c'est plus pratique
-				 *)
-				lhs::lvars
-			) (* fin de la fonction qui est le premier argument de fold_left *)
-			[] (* valeur initiale de l'accumulateur *)
-			ld (* liste parcourue par fold_left *)
-	in
-	(* on a recupéré la liste de toutes les variables déclarées, il ne reste
-	 * plus qu'à vérifier l'expression finale
-	 *)
-	vc_expr e allVars
-	 *)
-
-let eval p = 0
-	(* evalDecl: prend une liste de declarations et renvoie une liste
-	 * (variable, valeur) qui associe à chaque variable le résultat de
-	 * l'evaluation de l'expression en partie droite de la déclaration.
-	 *
-	 * ld : la liste des declarations a traiter
-	 * env : la liste d'association résultant des declarations deja traitees.
-	 *
-	 * On aurait pu de nouveau utiliser List.fold_left. On montre ici uen
-	 * version avec une fonction récursive qui parcourt la liste à la main.
-	 *)
-
-	 (*
-	 
-	let rec evalDecl ld env =
-		match ld with
-			(* On a traité toutes les déclarations => on renvoie l'environnement *)
-			[] -> env
-		| (* Evalue la partie droite dans l'environnement courant et ajoute le
-			 * nouveau couple (variable, valeur) à l'environnement transmis pour
-			 * l'appel suivant.
-			 *)
-			{ lhs; rhs; } :: ld' ->
-				evalDecl ld' ((lhs, evalExpr rhs env) :: env)
-	and evalComp condition env =
-		match condition with
-		Comp(op, g, d) ->
-			let vg = evalExpr g env and vd = evalExpr d env in
-			begin
-				match op with
-				Eq ->  vg = vd
-				| Neq -> vg != vd
-				| Lt ->  vg < vd
-				| Le ->  vg <= vd
-				| Gt ->  vg > vd
-				| Ge ->  vg >= vd
-			end
-		| _ ->
-			 (* une comparaison est forcement de la forme Comp(...). Si on trouve
-				* autre chose c'est qu'il y a un pb: AST mal construit
-				*)
-			 failwith "unexpected situation in evalComp"
-	and evalExpr e env =
-		match e with
-			Id x ->
-			(* L'exception ne peut pas arriver si les vérifications contextuelles
-			 * sont correctes.
-			 *)
-			begin
-				(* begin end nécessaire pour que les autres cas du match ne soient
-				 * pas considérées comme des noms d'exceptions gérées par le
-				 * try ... with qui accepte en général plusieurs exceptions
-				 *)
-				try List.assoc x env
-				with Not_found -> failwith ("Unexpected situation in evalExpr")
-			end
-		| Cste v -> v
-		| Plus(g, d) -> (evalExpr g env) + (evalExpr d env)
-		| Minus (g, d) -> (evalExpr g env) - (evalExpr d env)
-		| Times (g, d) -> (evalExpr g env) * (evalExpr d env)
-		| Div (g, d) ->
-			let vg = (evalExpr g env) and vd = (evalExpr d env) in
-			if vd = 0 then
-				raise (RUN_Error "division par 0")
-			else vg / vd
-		| UMinus e -> - (evalExpr e env)
-		| Ite (si, alors, sinon) ->
-			if evalComp si env then (evalExpr alors env)
-			else (evalExpr sinon env)
-		| Comp _ ->
-			 (* une expression de comparaison ne peut pas apparaitre ailleurs que
-			 * dans un IF et elle sera alors traitée par evalComp. Si on la voit
-			 * ici c'est qu'il y a un probleme.
-			 *)
-			failwith "unexpected situation in evalExpr"
-	in let final_env = evalDecl ld [] in (* traite les déclarations *)
-		evalExpr e final_env (* traite l'expression finale *)
-
-		*)
+	vc_defined_classes p;
 ;;
