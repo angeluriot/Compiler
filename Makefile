@@ -1,6 +1,7 @@
 CP_FOLDER  = sources
 GEN_FOLDER = build
 
+
 CP_FILES   = ast.ml eval.ml main.ml utils.ml print.ml testLex.ml lex.mll parse.mly
 COPIES     = $(addprefix $(CP_FOLDER)/, $(CP_FILES))
 
@@ -13,10 +14,11 @@ all: copy $(GEN_FOLDER)/parse.mli $(addprefix $(GEN_FOLDER)/, $(SOURCES))
 	cd $(GEN_FOLDER) ; ocamlc $(INTERFACES)
 	cd $(GEN_FOLDER) ; ocamlc -o compiler $(SOURCES)
 
-testLex: copy $(GEN_FOLDER)/parse.mli $(GEN_FOLDER)/lex.ml $(GEN_FOLDER)/testLex.ml $(GEN_FOLDER)/utils.ml
+testLex: copy $(GEN_FOLDER)/parse.mli $(GEN_FOLDER)/lex.ml $(GEN_FOLDER)/testLex.ml
 	cd $(GEN_FOLDER) ; ocamlc -c ast.ml
 	cd $(GEN_FOLDER) ; ocamlc $(INTERFACES)
 	cd $(GEN_FOLDER) ; ocamlc -o testLex ast.ml eval.ml utils.ml print.ml parse.ml  lex.ml testLex.ml
+
 
 $(GEN_FOLDER)/lex.ml: copy $(GEN_FOLDER)/lex.mll $(GEN_FOLDER)/parse.mli $(GEN_FOLDER)/ast.ml
 	cd $(GEN_FOLDER) ; ocamllex lex.mll
