@@ -1,5 +1,8 @@
 open Ast
 
+let get_classes_names ld = List.fold_left (fun acc x -> x.classname :: acc) [] ld
+;;
+
 let vc_defined_classes p =
 	let rec ok_expr e env = match e with
 		| Cast (s, _) -> if not (List.mem s env) then raise (VC_Error ("Classe non déclarée : " ^ s))
@@ -64,7 +67,7 @@ let vc_defined_classes p =
 			List.iter (ok_classelem env_s) c.ce;
 			ok_classes s env_s)
 	in
-	let env_classes = ok_classes p.classes (["Integer"; "String"])
+	let env_classes = ok_classes p.classes (get_classes_names p.classes @ ["Integer"; "String"])
 	in
 	ok_block p.block env_classes;
 	env_classes
@@ -79,6 +82,7 @@ let vc_redeclaration_class ld =
 	) (["Integer"; "String"]) ld
 ;;
 
+(* // TODO *)
 let vc_available_methods_fields p = ()
 ;;
 
@@ -115,7 +119,7 @@ let vc_inheritance_cycle ld =
 	List.iter (fun c -> check_cycle c classes []) classes
 ;;
 
-let vc_portee p =
+let vc_portee_id p =
 	let contains id env = List.fold_left (fun acc (x, _) -> acc || x = id) false env
 	in
 	let ajoute_params p type_ env = env @ [(p, type_)]
@@ -258,4 +262,7 @@ let vc p =
 	vc_redeclaration_class p.classes;
 	vc_inheritance_cycle p.classes;
 	vc_defined_classes p;
+	vc_surcharge p.classes;
+	vc_available_methods_fields p;
+	vc_portee_id p
 ;;

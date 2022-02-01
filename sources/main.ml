@@ -60,25 +60,12 @@ let parse_with_error lexbuf file_in chan =
 		;
 		Eval.vc_surcharge p.classes;
 		*)
-		Eval.vc_portee p;
-		(* Eval.vc p;*)
-(*
 
-		let classes, ok = Ast.vc_defined_classes p in
-		Printf.printf "Ok : %b\n" ok;
-		List.iter (fun x -> Printf.printf "%s\n" x) classes
-*)
-		(* partie interprete: on procede à l'évaluation des déclarations ainsi
-		 * qu'à celle de l'expression entre le begin et le end
-		 * Lance l'exception RUN_error en cas d'erreur à l'exécution
-		 *)
-		(*
-		let res = Eval.eval ld e in
-		print_string "Evaluation finale: ";  print_int res; print_newline ();
+		Eval.vc p;
+
 
 		(* partie compilation: on engendre du code pour la machine abstraite *)
-		Compile.compile ld e chan;
-		*)
+		(*Compile.compile p chan;*)
 	
 	
 	with (* traite exception général ... *)
