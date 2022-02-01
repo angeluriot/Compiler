@@ -1,0 +1,15 @@
+class A () is {
+   def A() is {}
+}
+
+class B () is {
+   def B() is {}
+}
+
+class A () is {
+   def A() is {}
+}
+
+{
+    
+}

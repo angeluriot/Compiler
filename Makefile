@@ -19,7 +19,6 @@ testLex: copy $(GEN_FOLDER)/parse.mli $(GEN_FOLDER)/lex.ml $(GEN_FOLDER)/testLex
 	cd $(GEN_FOLDER) ; ocamlc $(INTERFACES)
 	cd $(GEN_FOLDER) ; ocamlc -o testLex ast.ml eval.ml utils.ml print.ml parse.ml  lex.ml testLex.ml
 
-
 $(GEN_FOLDER)/lex.ml: copy $(GEN_FOLDER)/lex.mll $(GEN_FOLDER)/parse.mli $(GEN_FOLDER)/ast.ml
 	cd $(GEN_FOLDER) ; ocamllex lex.mll
 

@@ -88,12 +88,12 @@ constructorParameters:
 
 	// Constructor parameters
 	| o = boption(VAR) param = separated_nonempty_list(COMMA, ID)
-		COLON className = CLASSNAME												{ { var = o; param = param; classname = className } }
+		COLON className = CLASSNAME												{ { var = o; param = param; classname_constr_param = className } }
 
 methodParameters:
 
 	// Method parameters
-	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME	{ { param = param; classname = className } }
+	| param = separated_nonempty_list(COMMA, ID) COLON className = CLASSNAME	{ { param = param; classname_method_param = className } }
 
 classElement:
 
@@ -111,14 +111,14 @@ classElement:
 	// Simple Methods
 	| DEF s = boption(STATIC) o = boption(OVERRIDE) name = ID
 		lparam = delimited(LPAREN, separated_list(COMMA,
-		constructorParameters), RPAREN) COLON
+		methodParameters), RPAREN) COLON
 		className = CLASSNAME ASSIGN e = expression								{ SimpleMethod(s, o, name, lparam, className, e) }
 
 	// Complex Methods
 	| DEF s = boption(STATIC) o = boption(OVERRIDE) name = ID
 		lparam = delimited(LPAREN, separated_list(COMMA,
-		constructorParameters), RPAREN) superClassOpt =
-		option(COLON superClass = CLASSNAME { superClass }) IS b = block		{ ComplexMethod(s, o, name, lparam, superClassOpt, b) }
+		methodParameters), RPAREN) returnedClass =
+		option(COLON classname = CLASSNAME { classname }) IS b = block		{ ComplexMethod(s, o, name, lparam, returnedClass, b) }
 
 block:
 

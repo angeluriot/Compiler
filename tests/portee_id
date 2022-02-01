@@ -1,0 +1,22 @@
+class Test(var x, y: Integer) is {
+  var z : Integer
+
+  def Test(var x, y: Integer) is
+     { this.z := 0; }
+
+  def move(dx: Integer, dy, dz: Integer) : Test is {
+      this.x := this.x + dx;
+      this.y := this.y + dy;
+      /* z non déclarée
+      this.z := this.z + z;
+      */
+      
+      result := this;
+  }
+}
+
+{
+    /* d non déclarée
+     a,b,c: Integer is if a > b then c := 2; else d;
+    */
+}

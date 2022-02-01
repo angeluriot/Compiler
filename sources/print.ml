@@ -88,7 +88,7 @@ let printConstrParam c =
 	| a :: b	-> 
 		Printf.printf "%s " a;
 		List.iter (fun s -> Printf.printf ", %s" s) b;
-		Printf.printf "] : [token: classname: %s]]" c.classname
+		Printf.printf "] : [token: classname: %s]]" c.classname_constr_param
 ;;
 
 (*
@@ -103,7 +103,7 @@ let printMethodParam m =
 	| a :: b ->
 		Printf.printf "%s " a;
 		List.iter (fun s -> Printf.printf ", %s" s) b;
-		Printf.printf "] : [token: classname: %s]]" m.classname
+		Printf.printf "] : [token: classname: %s]]" m.classname_method_param
 ;;
 
 let printBlocType b = ()
@@ -160,13 +160,22 @@ let rec printConstrLParam l = match l with
 		printConstrLParam s
 ;;
 
+let rec printMethodLParam l = match l with
+	| [] -> ()
+	| [p] -> printMethodParam p
+	| p :: s ->
+		printMethodParam p;
+		Printf.printf "[token: comma] ";
+		printMethodLParam s
+;;
+
 let printMethodWithoutInstr isStatic isOverridden name lparam classname =
 	Printf.printf "[token: def] ";
 	if isStatic then Printf.printf "[token: static] ";
 	if isOverridden then Printf.printf "[token: override] ";
 	Printf.printf "[token: id: %s] " name;
 	Printf.printf "[token: lparen] ";
-	printConstrLParam lparam;
+	printMethodLParam lparam;
 	Printf.printf "[token: rparen] [token: colon] [token: classname: %s] [token: assign] " classname
 ;;
 
@@ -215,7 +224,7 @@ let printClassElem e =
 			if isOverridden then Printf.printf "[token: override] ";
 			Printf.printf "[token: id: %s] " name;
 			Printf.printf "[token: lparen] ";
-			printConstrLParam lparam;
+			printMethodLParam lparam;
 			Printf.printf "[token: rparen] [token: assign] "
 		| Some s -> printMethodWithoutInstr isStatic isOverridden name lparam s;
 		printBlocType block;

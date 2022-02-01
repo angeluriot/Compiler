@@ -27,13 +27,13 @@ type expr =
 type constrParam = {
 	var: bool;
 	param: string list;
-	classname: string;
+	classname_constr_param: string;
 }
 ;;
 
 type methodParam = {
 	param: string list;
-	classname: string;
+	classname_method_param: string;
 }
 ;;
 
@@ -52,8 +52,8 @@ blockType =
 type classElem =
 	Field of bool * string list * string
 	| Constr of string * constrParam list * ((string * expr list) option) * blockType
-	| SimpleMethod of bool * bool * string * constrParam list * string * expr
-	| ComplexMethod of bool * bool * string * constrParam list * string option * blockType
+	| SimpleMethod of bool * bool * string * methodParam list * string * expr
+	| ComplexMethod of bool * bool * string * methodParam list * string option * blockType
 ;;
 
 type decl = {

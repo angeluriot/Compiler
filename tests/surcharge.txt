@@ -1,0 +1,36 @@
+/*
+Eval.vc_surcharge
+*/
+
+/*
+   Test surcharge d'une méthode dans la même classe
+*/
+
+/*
+class A () is {
+   def name(p1: Integer) : String is {}
+   def name(p1: Integer) : Integer is {}
+}
+*/
+
+/*
+   Test surcharge d'une méthode d'une super-classe
+*/
+
+class A () is {
+   def name(p: Integer) : String is {}
+}
+
+/* redefinition ok */
+class B () extends A is {
+   def override name(p: Integer) : String is {}
+}
+
+/* ni surcharge ni redefinition, peut être différente de celle de A*/
+class C () extends A is {
+   def name(p: String) : Integer is {}
+}
+
+{ 
+
+}

@@ -1,5 +1,6 @@
 open Ast
 open Lexing
+open Eval
 
 (* lexbuf: correspond au buffer d'entrée associé au programme qu'on traite
  * file_in: descripteur de fichier pour ce programme
@@ -32,26 +33,41 @@ let parse_with_error lexbuf file_in chan =
 		 * utilisee pour le projet.
 		 *)
 
-		Print.printProg p; (* impression non ambigue de tout l'AST *)
+		(*
+			Print.printProg p; 
+		 *)
+		
+		(* impression non ambigue de tout l'AST *)
 
 		(* Verifications Contextuelles: incluses dans le fichier eval.ml
 		 * Lance l'exception VC_Error en cas d'erreur. En ce cas ni la partie
 		 * interprétation, ni la partie compilation ne sera lancée et on se
 		 * retrouvera directement dans le traite-exception ci-dessous.
 		 *)
+
+		(*		
+		List.iter (fun (a, b) -> Printf.printf "(%s, %s)\n" a b) (Eval.get_class_inheritance_info p.classes);
+
+		let methods = Eval.get_classes_methods_list p.classes
+		in
+		List.iter (fun (classname, coef, name, lparam, returnedClass) ->
+			Printf.printf "(%s, %i, %s, %s, [" classname coef name returnedClass;
+			List.iter (fun p -> let (name, type_) = p in
+				Printf.printf "(%s, %s), " name type_
+			) lparam;
+			Printf.printf "])\n"
+		) methods
+		;
+		Eval.vc_surcharge p.classes;
+		*)
+
 		Eval.vc p;
 
-		(* partie interprete: on procede à l'évaluation des déclarations ainsi
-		 * qu'à celle de l'expression entre le begin et le end
-		 * Lance l'exception RUN_error en cas d'erreur à l'exécution
-		 *)
-		(*
-		let res = Eval.eval ld e in
-		print_string "Evaluation finale: ";  print_int res; print_newline ();
 
 		(* partie compilation: on engendre du code pour la machine abstraite *)
-		Compile.compile ld e chan;
-		*)
+		(*Compile.compile p chan;*)
+	
+	
 	with (* traite exception général ... *)
 		Parse.Error -> (* levée par l'analyseur syntaxique *)
 		Printf.fprintf stderr "Syntax error at position %a\n" print_position lexbuf;
