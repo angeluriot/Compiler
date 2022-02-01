@@ -86,7 +86,6 @@ let vc_redeclaration_class ld =
 let vc_available_methods_fields p = ()
 ;;
 
-
 let get_class_inheritance_info ld =
 	let extract_classname d =
 		match d.superClassOpt with
@@ -252,33 +251,61 @@ let vc_surcharge ld =
 	)
 ;;
 
+let vc_constr_name d =
+	List.iter (fun e ->
+		match e with 
+			| Constr(name, _, _, _) -> if name = d.classname then () else raise (VC_Error ("Le constructeur et la classe de " ^d.classname ^ " n'ont pas le même nom."))
+			| _ -> ()
+	) d.ce
+;;
 
-let vc p =
-	vc_redeclaration_class p.classes;
-	vc_inheritance_cycle p.classes;
-	vc_defined_classes p;
-	vc_surcharge p.classes;
-	vc_available_methods_fields p;
-	vc_portee_id p
+let rec vc_integer_string_final d =
+	if d.classname = "Integer" || d.classname = "String" then raise (VC_Error ("La classe "^d.classname^" ne peut pas être redéfinie."));
+	match d.superClassOpt with
+		| Some s -> if s = "Integer" || s = "String" then raise (VC_Error ("La classe "^s^" ne doit pas avoir de sous-classe."))
+		| _ -> ()
+;;
 
-(*let constr_name_equals_class_name p =
-	let rec check_class c l =
-		let rec check_element c e =
-			match e with
-			| Constr(name, _, _, _) -> if name = c then return true else false
-			| _ -> false
-		in
-		match l with
-		| _::s -> check_element c s
-		| [] -> false
+let vc_one_constr d = 
+	let cpt = List.fold_left (fun acc x ->
+		match x with
+		| Constr (_,_,_,_) -> acc + 1
+		| _ -> acc
+	) 0 d.ce
 	in
-	let*)
+	if cpt = 0 then raise (VC_Error ("La classe "^d.classname^" n'a pas de constructeur.")) else 
+		if cpt != 1 then raise (VC_Error ("La classe "^d.classname^" a plus d'un constructeur."))
+;;
 
-let rec does_method_have_a_result ce =
+let rec vc_method_result ce =
+	let does_expr_have_a_result e =
+		match e with
+		| Result -> true
+		| _ -> false
+	in
+	let rec does_instr_have_a_result i  =
+		match i with
+		| Expr e -> (match e with Result -> true | _ -> false)
+		| Assignment (e1, _) -> does_expr_have_a_result e1
+		| Ite (_, i1, i2) -> does_instr_have_a_result i1 || does_instr_have_a_result i2
+		| BlockInstr (bt) -> does_blocktype_have_a_result bt
+		| _ -> false
+	and
+	does_instrlist_have_a_result il =
+		List.fold_left (fun acc x -> acc || does_instr_have_a_result x) false il
+	and
+	does_blocktype_have_a_result bt =
+		match bt with
+		| Block (il) -> does_instrlist_have_a_result il
+		| BlockVar (_, il) -> does_instrlist_have_a_result il
+	in
 	match ce with
-	| Field | Constr -> ()
-	| SimpleMethod (b1, b2, s1, cl, s2, e) -> does_expr_have_a_result e
-	| ComplexMethod (b1, b2, s1, cl, s2, bt) -> does_blocktype_have_a_result bt
+	| ComplexMethod (_, _, _, _, s2, bt) -> (match s2 with
+		| None -> if (does_blocktype_have_a_result bt) then raise (VC_Error ("Result in void method"))
+		| _ -> if not (does_blocktype_have_a_result bt) then raise (VC_Error ("No result in method"))
+	)
+	| _ -> ()
+;;
 
 let rec is_this_or_super_in_block p =
 	let is_expr_this_or_super e =
@@ -288,9 +315,12 @@ let rec is_this_or_super_in_block p =
 			| _ -> false
 	in
 	let rec instr_this_or_super l2 = match l2 with
-		| Return | BlockInstr -> false	
 		| Assignment (e1, e2) -> is_expr_this_or_super e1 || is_expr_this_or_super e2
-		| Ite (e, i1, i2) -> is_expr_this_or_super e 
+		| Ite (e, i1, i2) ->
+			is_expr_this_or_super e;
+			instr_this_or_super i1;
+			instr_this_or_super i2
+		| _ -> false
 	in
 	let rec is_this_or_super_in_block_sub l = match l with
 		| [] -> false
@@ -299,24 +329,20 @@ let rec is_this_or_super_in_block p =
 	match p.block with
 		| Block(l) -> if is_this_or_super_in_block_sub l then raise (VC_Error ("This or Super in block"))
 		| BlockVar(ml, l) -> if is_this_or_super_in_block_sub l then raise (VC_Error ("This or Super in block"))
-
-
-let rec vc_integer_string_final ld =
-	List.iter (fun d -> 
-		if d.classname = "Integer" || d.classname = "String" then raise (VC_Error ("La classe "^d.classname^" ne peut pas être redéfinie."));
-		match d.superClassOpt with
-			| Some s -> if s = "Integer" || s = "String" then raise (VC_Error ("La classe "^s^" ne doit pas avoir de sous-classe."))
-			| _ -> ()
-	) ld
 ;;
 
-let checkOneConstructor d = 
-	let cpt = List.fold_left (fun acc x ->
-		match x with
-		| Constr (_,_,_,_) -> acc +1
-		| _ -> acc
-	) 0 d.ce
-	in
-	if cpt = 0 then raise (VC_Error ("La classe "^d.classname^" n'a pas de constructeur.")) else 
-		if cpt != 1 then raise (VC_Error ("La classe "^d.classname^" a plus d'un constructeur."))
+let vc p =
+	vc_redeclaration_class p.classes;
+	vc_inheritance_cycle p.classes;
+	vc_defined_classes p;
+	vc_surcharge p.classes;
+	vc_available_methods_fields p;
+	vc_portee_id p;
+	is_this_or_super_in_block p;
+	List.iter (fun d -> 
+		vc_constr_name d;
+		vc_integer_string_final d;
+		vc_one_constr d;
+		List.iter (fun e -> vc_method_result e) d.ce
+	) p.classes
 ;;

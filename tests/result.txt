@@ -1,0 +1,19 @@
+class TestVoid() is {
+   def test() is { 5; }
+}
+
+class TestInt() is {
+   def test() : Integer is { result := 5; }
+}
+
+class TestVoidWrong() is {
+   def test() is { result := 5; }
+}
+
+class TestIntWrong() is {
+   def test() : Integer is { 5; }
+}
+
+{
+
+}
